@@ -6,10 +6,6 @@ import com.eternitywall.ots.op.OpSHA256
 import java.io.*
 import java.util.*
 
-
-//const val FILEPATH: String = "C:\\Users\\bruno\\Desktop\\obj"
-//const val FILE: String = "HASH PARA TESTAR TIMESTAMP 4"
-
 fun main(args: Array<String>) {
     getCommand()
 }
@@ -46,9 +42,8 @@ fun getCommand() {
     }
 }
 
-
 fun stamp() {
-    println("Which file do you want to commitment?")
+    println("Which file do you want to stamp?")
     val filePath = readLine() ?: throw NullPointerException()
     val file = File(filePath)
     val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), file)
@@ -75,6 +70,8 @@ fun verifyStamp() {
 
     val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), originalFile)
     val detachedOts: DetachedTimestampFile = DetachedTimestampFile.deserialize(otsFileObj)
+
+    if(OpenTimestamps.upgrade(detachedOts)) println("Timestamp upgraded")
 
 //    println(OpenTimestamps.info(detachedOts))
 
