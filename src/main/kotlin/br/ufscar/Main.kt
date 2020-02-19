@@ -30,6 +30,10 @@ fun getCommand() {
             verifyStamp()
             getCommand()
         }
+        "upgrade" -> {
+            upgrade()
+            getCommand()
+        }
         "?" -> {
             showCommands()
             getCommand()
@@ -72,7 +76,7 @@ fun verifyStamp() {
     val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), originalFile)
     val detachedOts: DetachedTimestampFile = DetachedTimestampFile.deserialize(otsFileObj)
 
-    println(OpenTimestamps.info(detachedOts))
+//    println(OpenTimestamps.info(detachedOts))
 
     val result = OpenTimestamps.verify(detachedOts,detachedFile)
     if (result == null || result.isEmpty()) {
@@ -82,11 +86,26 @@ fun verifyStamp() {
     }
 }
 
+fun upgrade(){
+    println("Provide the ots file")
+    val otsFilePath = readLine() ?: throw NullPointerException()
+    val otsFileObj = readObjectFromFile(otsFilePath) as ByteArray
+    val detachedOts: DetachedTimestampFile = DetachedTimestampFile.deserialize(otsFileObj)
+    val changed = OpenTimestamps.upgrade(detachedOts)
+    if (!changed) {
+        println("Timestamp not upgraded")
+    } else {
+        writeObjectToFile(detachedOts.serialize(), otsFilePath)
+        println("Timestamp upgraded")
+    }
+}
+
 fun showCommands() {
     println(
         "Write 'stamp' to stamp a file; \n" +
                 "Write 'getInfo' to get info from a file previously stamped; \n" +
-                "Write 'verifyStamp' to verify the integrity from a file previously stamped."
+                "Write 'verifyStamp' to verify the integrity from a file previously stamped; \n" +
+                "Write 'upgrade' to upgrade incomplete remote calendar timestamps to be independently verifiable"
     )
 }
 
