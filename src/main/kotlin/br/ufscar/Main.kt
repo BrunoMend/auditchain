@@ -22,6 +22,10 @@ fun getCommand() {
             getInfo()
             getCommand()
         }
+        "verifyFile" -> {
+            verifyFile()
+            getCommand()
+        }
         "verifyStamp" -> {
             verifyStamp()
             getCommand()
@@ -59,7 +63,7 @@ fun getInfo() {
     println(OpenTimestamps.info(detachedFile))
 }
 
-fun verifyStamp() {
+fun verifyFile() {
     println("Provide the original file")
     val originalFilePath = readLine() ?: throw NullPointerException()
     println("Provide the ots file")
@@ -83,6 +87,25 @@ fun verifyStamp() {
     }
 }
 
+fun verifyStamp() {
+    println("Provide the ots file")
+    val otsFilePath = readLine() ?: throw NullPointerException()
+
+    val otsFileObj = readObjectFromFile(otsFilePath) as ByteArray
+    val detachedOts: DetachedTimestampFile = DetachedTimestampFile.deserialize(otsFileObj)
+
+    if(OpenTimestamps.upgrade(detachedOts)) println("Timestamp upgraded")
+
+//    println(OpenTimestamps.info(detachedOts))
+
+    val result = OpenTimestamps.verify(detachedOts.timestamp)
+    if (result == null || result.isEmpty()) {
+        println("Pending or Bad attestation")
+    } else {
+        result.forEach{(k, v) -> println("Success! $k attests data existed as of ${Date(v.timestamp * 1000)}")}
+    }
+}
+
 fun upgrade(){
     println("Provide the ots file")
     val otsFilePath = readLine() ?: throw NullPointerException()
@@ -99,10 +122,11 @@ fun upgrade(){
 
 fun showCommands() {
     println(
-        "Write 'stamp' to stamp a file; \n" +
-                "Write 'getInfo' to get info from a file previously stamped; \n" +
-                "Write 'verifyStamp' to verify the integrity from a file previously stamped; \n" +
-                "Write 'upgrade' to upgrade incomplete remote calendar timestamps to be independently verifiable"
+        "Type 'stamp' to stamp a file; \n" +
+                "Type 'getInfo' to get info from a file previously stamped; \n" +
+                "Type 'verifyFile' to verify the integrity from a file previously stamped; \n" +
+                "Type 'verifyStamp' to check the veracity of a timestamp in an ots file; \n" +
+                "Type 'upgrade' to upgrade incomplete remote calendar timestamps to be independently verifiable"
     )
 }
 
