@@ -4,11 +4,59 @@ import com.eternitywall.ots.DetachedTimestampFile
 import com.eternitywall.ots.OpenTimestamps
 import com.eternitywall.ots.op.OpSHA256
 import java.io.*
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.concurrent.timerTask
+
+private var i = 5
+private var stampedAt: LocalDateTime? = null
+private var filePath = ""
+private var otsPath = ""
 
 fun main(args: Array<String>) {
-    getCommand()
+//    getCommand()
+    testLatencyStamp()
 }
+
+//stamp a file
+fun testLatencyStamp() {
+    if (i > 9) {
+        println("All files posted")
+        return
+    }
+    filePath = "D:\\bruno\\Desktop\\osttest\\test$i.txt"
+    otsPath = "D:\\bruno\\Desktop\\osttest\\test$i.txt.ots"
+    val file = File(filePath)
+    val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), file)
+    OpenTimestamps.stamp(detachedFile)
+    stampedAt = LocalDateTime.now()
+    println("File $filePath stamped at: $stampedAt")
+    writeObjectToFile(detachedFile.serialize(), otsPath)
+    testLatencyVerify()
+}
+
+fun testLatencyVerify() {
+    Timer().schedule(timerTask {
+        val otsFileObj = readObjectFromFile(otsPath) as ByteArray
+        val detachedOts: DetachedTimestampFile = DetachedTimestampFile.deserialize(otsFileObj)
+
+        if (OpenTimestamps.upgrade(detachedOts)) println("Timestamp upgraded")
+
+        val result = OpenTimestamps.verify(detachedOts.timestamp)
+        if (result == null || result.isEmpty()) {
+            println("$filePath not posted at ${LocalDateTime.now()}")
+            testLatencyVerify()
+        } else {
+            result.forEach { (k, v) -> println("Success! $k attests data existed as of ${Date(v.timestamp * 1000)}") }
+            println("$filePath POSTED! At ${LocalDateTime.now()}")
+            println("Total time (approximately) = ${stampedAt?.until(LocalDateTime.now(), ChronoUnit.SECONDS)} seconds")
+            i++
+            testLatencyStamp()
+        }
+    }, 25000)
+}
+
 
 fun getCommand() {
     println("------------------------//----------------------------")
