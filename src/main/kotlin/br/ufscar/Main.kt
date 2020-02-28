@@ -1,40 +1,49 @@
 package br.ufscar
 
+
 import com.eternitywall.ots.DetachedTimestampFile
 import com.eternitywall.ots.OpenTimestamps
 import com.eternitywall.ots.op.OpSHA256
 import java.io.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.concurrent.timerTask
 
-private var i = 5
+private const val filesName: String = "latencyTest"
+
+private var i = 1
 private var stampedAt: LocalDateTime? = null
 private var filePath = ""
 private var otsPath = ""
 
+private lateinit var folder: String
+private val logFilePath: String by lazy { "$folder\\log${LocalDate.now()}.txt" }
+
 fun main(args: Array<String>) {
 //    getCommand()
+    println("Provide a folder")
+    folder = readLine() ?: throw NullPointerException()
     testLatencyStamp()
 }
 
 //stamp a file
 fun testLatencyStamp() {
-    if (i > 9) {
-        println("All files posted")
-        return
-    }
-    filePath = "D:\\bruno\\Desktop\\osttest\\test$i.txt"
-    otsPath = "D:\\bruno\\Desktop\\osttest\\test$i.txt.ots"
+    filePath = "$folder\\$filesName$i.txt"
+    otsPath = "$folder\\$filesName$i.txt.ots"
+
+    createFile(filePath, "This is the test number $i")
     val file = File(filePath)
     val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), file)
     OpenTimestamps.stamp(detachedFile)
     stampedAt = LocalDateTime.now()
-    println("File $filePath stamped at: $stampedAt")
+    log("stamp", "File $filePath stamped at: $stampedAt")
     writeObjectToFile(detachedFile.serialize(), otsPath)
     testLatencyVerify()
 }
+
+//private var result = false
 
 fun testLatencyVerify() {
     Timer().schedule(timerTask {
@@ -45,13 +54,16 @@ fun testLatencyVerify() {
 
         val result = OpenTimestamps.verify(detachedOts.timestamp)
         if (result == null || result.isEmpty()) {
-            println("$filePath not posted at ${LocalDateTime.now()}")
+//        if(!result) {
+            log("verify","$filePath not posted in ${stampedAt?.until(LocalDateTime.now(), ChronoUnit.SECONDS)} seconds")
+//            result = true
             testLatencyVerify()
         } else {
             result.forEach { (k, v) -> println("Success! $k attests data existed as of ${Date(v.timestamp * 1000)}") }
-            println("$filePath POSTED! At ${LocalDateTime.now()}")
-            println("Total time (approximately) = ${stampedAt?.until(LocalDateTime.now(), ChronoUnit.SECONDS)} seconds")
+            log("verify","$filePath POSTED! At ${LocalDateTime.now()}")
+            log("verify", "Total time (approximately) = ${stampedAt?.until(LocalDateTime.now(), ChronoUnit.SECONDS)} seconds")
             i++
+//            result = false
             testLatencyStamp()
         }
     }, 25000)
@@ -185,7 +197,7 @@ fun writeObjectToFile(obj: ByteArray, filePath: String) {
         val objectOut = ObjectOutputStream(fileOut)
         objectOut.writeObject(obj)
         objectOut.close()
-        println("The Object $obj  was successfully written to a file")
+//        println("The Object $obj  was successfully written to a file")
     } catch (ex: Exception) {
         ex.printStackTrace()
     }
@@ -196,11 +208,25 @@ fun readObjectFromFile(filePath: String): Any? {
         val fileIn = FileInputStream(filePath)
         val objectIn = ObjectInputStream(fileIn)
         val obj = objectIn.readObject()
-        println("The Object $obj has been read from the file")
+//        println("The Object $obj has been read from the file")
         objectIn.close()
         obj
     } catch (ex: java.lang.Exception) {
         ex.printStackTrace()
         null
     }
+}
+
+fun createFile(filePath: String, textInput: String? = null) {
+    val file = File(filePath)
+    if (!file.exists()) {
+        file.createNewFile()
+        textInput?.let { file.writeText(it) }
+    }
+//    else println("File $filePath already exists")
+}
+
+fun log(tag: String, textLog: String) {
+    createFile(logFilePath)
+    File(logFilePath).appendText("$tag : $textLog \n")
 }
