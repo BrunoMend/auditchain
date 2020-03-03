@@ -30,7 +30,7 @@ class TestLatency(private val folder: String) {
     }
 
     //stamp a file
-    fun testLatencyStamp() {
+    private fun testLatencyStamp() {
         filePath = "$folder\\$filesName$i.txt"
         otsPath = "$folder\\$filesName$i.txt.ots"
 
@@ -55,13 +55,11 @@ class TestLatency(private val folder: String) {
 
             val result = OpenTimestamps.verify(detachedOts.timestamp)
             if (result == null || result.isEmpty()) {
-//        if(!result) {
                 log(
                     "verify",
                     "$filePath not posted in ${stampedAt?.until(LocalDateTime.now(), ChronoUnit.SECONDS)} seconds",
                     logFilePath
                 )
-//            result = true
                 testLatencyVerify()
             } else {
                 result.forEach { (k, v) -> println("Success! $k attests data existed as of ${Date(v.timestamp * 1000)}") }
@@ -76,7 +74,6 @@ class TestLatency(private val folder: String) {
                     logFilePath
                 )
                 i++
-//            result = false
                 testLatencyStamp()
             }
         }, 25000)

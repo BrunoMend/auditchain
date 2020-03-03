@@ -1,4 +1,4 @@
-package br.ufscar
+package br.ufscar.utils
 
 import java.io.*
 
