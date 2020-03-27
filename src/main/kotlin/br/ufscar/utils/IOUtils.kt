@@ -2,7 +2,18 @@ package br.ufscar.utils
 
 import java.io.*
 
-fun writeObjectToFile(obj: ByteArray, filePath: String) {
+fun String.toFileName(): String =
+    this.replace("\\", "")
+        .replace("/", "")
+        .replace(":", "")
+        .replace("*", "")
+        .replace("?", "")
+        .replace("\"", "")
+        .replace("<", "")
+        .replace(">", "")
+        .replace("|", "")
+
+fun writeObjectToFile(obj: Serializable, filePath: String) {
     try {
         val fileOut = FileOutputStream(filePath)
         val objectOut = ObjectOutputStream(fileOut)

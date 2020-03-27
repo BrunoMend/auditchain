@@ -1,9 +1,5 @@
-package br.ufscar.model
+package br.ufscar.utils
 
-import br.ufscar.utils.createFile
-import br.ufscar.utils.log
-import br.ufscar.utils.readObjectFromFile
-import br.ufscar.utils.writeObjectToFile
 import com.eternitywall.ots.DetachedTimestampFile
 import com.eternitywall.ots.OpenTimestamps
 import com.eternitywall.ots.op.OpSHA256
@@ -43,8 +39,6 @@ class TestLatency(private val folder: String) {
         writeObjectToFile(detachedFile.serialize(), otsPath)
         testLatencyVerify()
     }
-
-//private var result = false
 
     fun testLatencyVerify() {
         Timer().schedule(timerTask {

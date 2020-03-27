@@ -27,6 +27,11 @@ fun verifyFile(originalFilePath: String, otsFilePath: String) {
     val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), originalFile)
     val detachedOts: DetachedTimestampFile = DetachedTimestampFile.deserialize(otsFileObj)
 
+    verifyStamp(detachedFile, detachedOts)
+}
+
+fun verifyStamp(detachedFile: DetachedTimestampFile, detachedOts: DetachedTimestampFile) {
+
     if(OpenTimestamps.upgrade(detachedOts)) println("Timestamp upgraded")
 
 //    println(OpenTimestamps.info(detachedOts))
