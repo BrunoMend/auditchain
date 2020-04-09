@@ -1,33 +1,24 @@
 package br.ufscar.auditchain.common
 
-import br.ufscar.auditchain.common.utils.DAY_MINUTES
-import br.ufscar.auditchain.common.utils.minuteInDay
-import br.ufscar.auditchain.common.utils.minuteInDayToDateMillis
-import br.ufscar.auditchain.common.utils.secondInDay
+import br.ufscar.auditchain.common.utility.minuteInDay
+import br.ufscar.auditchain.common.utility.minuteInDayToDateMillis
+import br.ufscar.auditchain.common.utility.secondInDay
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-internal class TimerNotifier(frequency: Long, private val delay: Long) {
+internal class TimerNotifier {
 
     private val timerSubject: PublishSubject<Pair<Long, Long>> = PublishSubject.create()
     fun getTimerObservable(): Observable<Pair<Long, Long>> = timerSubject
 
-    private val executor = Executors.newSingleThreadScheduledExecutor()
-    private val instantList: List<Long>
+    private val timerScheduler = Schedulers.newThread()
 
     init {
-        val initializeInstantList = mutableListOf<Long>()
-        for (temp in frequency until DAY_MINUTES step frequency) {
-            initializeInstantList.add(temp)
-        }
-        initializeInstantList.add(DAY_MINUTES)
-
-        instantList = initializeInstantList
         nextNotify()
     }
 
@@ -37,21 +28,25 @@ internal class TimerNotifier(frequency: Long, private val delay: Long) {
         val zonedNow = ZonedDateTime.of(localNow, currentZone)
 
         val previousInstant = try {
-            instantList.last { it <= zonedNow.minuteInDay }
+            Config.instants.last { it <= zonedNow.minuteInDay }
         } catch (e: NoSuchElementException) {
-            instantList.last()
+            Config.instants.last()
         }
 
         val nextInstant = try {
-            instantList.first { it > zonedNow.minuteInDay }
+            Config.instants.first { it > zonedNow.minuteInDay }
         } catch (e: NoSuchElementException) {
-            instantList.first()
+            Config.instants.first()
         }
 
-        val delay = (nextInstant * 60) + delay - zonedNow.secondInDay
-        println(delay)
-        executor.schedule({
-            timerSubject.onNext(Pair(zonedNow.minuteInDayToDateMillis(previousInstant), zonedNow.minuteInDayToDateMillis(nextInstant)))
+        val delay = (nextInstant * 60) + Config.delay - zonedNow.secondInDay
+        timerScheduler.scheduleDirect({
+            timerSubject.onNext(
+                Pair(
+                    zonedNow.minuteInDayToDateMillis(previousInstant),
+                    zonedNow.minuteInDayToDateMillis(nextInstant)
+                )
+            )
             nextNotify()
         }, delay, TimeUnit.SECONDS)
     }

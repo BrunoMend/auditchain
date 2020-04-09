@@ -1,57 +1,81 @@
 package br.ufscar.auditchain.common
 
-import br.ufscar.auditchain.data.io.writeObjectToFile
+import br.ufscar.auditchain.common.utility.toDateMillis
 import br.ufscar.auditchain.data.remote.infrastructure.RetrofitInitializer
 import br.ufscar.auditchain.data.remote.model.ElasticQuery
-import com.eternitywall.ots.DetachedTimestampFile
-import com.eternitywall.ots.OpenTimestamps
-import com.eternitywall.ots.op.OpSHA256
 import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 fun main(args: Array<String>) {
     val service = RetrofitInitializer().createElasticService()
 
-    TimerNotifier(Config.frequency, Config.delay)
+    TimerNotifier()
         .getTimerObservable()
-        .map { instants ->
-            ElasticQuery(
-                Config.indexPattern,
-                Config.rangeParameter,
-                instants.first,
-                instants.second,
-                Config.resultMaxSize
-            )
-        }.flatMapSingle { Single.just(Pair(it, service.getLogs(it.indexPattern, it.query, it.size))) }
-        .map { Pair<ElasticQuery, String?>(it.first, ElasticQuery.getRequestContent(it.second.blockingGet())) }
+        .map { ElasticQuery(it.first, it.second) }
+        .flatMapSingle { Single.just(Pair(it, service.getLogs(it.indexPattern, it.query, it.size))) }
+        .map { Pair(it.first, ElasticQuery.getRequestContent(it.second.blockingGet())) }
+        .subscribeOn(Schedulers.computation())
         .subscribe(
             { pair ->
                 val elasticQuery = pair.first
                 val logs = pair.second
                 if (logs.isNullOrEmpty() || logs == "[]")
                     println("have no logs to stamp")
-                else {
+                else
                     println(logs)
-                    println(elasticQuery)
+//                println("unsaved: $elasticQuery")
+//                ObjectIO()
+//                    .write(elasticQuery.toString().toFileName(), elasticQuery)
+//                    .blockingSubscribe({ println("saved with success")}, {println("error on save: $it")})
+//                ObjectIO().read<ElasticQuery>(elasticQuery.toString().toFileName()).subscribe ({ println("saved: $it") }, {println("error on read: $it")})
                     //stamp
-                    val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), logs.toByteArray())
-                    OpenTimestamps.stamp(detachedFile)
-                    writeObjectToFile(
-                        elasticQuery,
-                        "C:\\ots\\validate\\$elasticQuery"
-                    )
-                    writeObjectToFile(
-                        detachedFile.serialize(),
-                        "C:\\ots\\validate\\$elasticQuery.ots"
-                    )
-                    println(OpenTimestamps.info(detachedFile))
-                }
+//                    val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), logs.toByteArray())
+//                    OpenTimestamps.stamp(detachedFile)
+//                    writeObjectToFile(elasticQuery,"C:\\ots\\validate\\$elasticQuery")
+//                    writeObjectToFile(detachedFile.serialize(),"C:\\ots\\validate\\$elasticQuery.ots")
+//                    println(OpenTimestamps.info(detachedFile))
+
             },
             { error ->
                 println(error.message)
             }
         )
+
+    getCommand()
 }
 
+fun getCommand() {
+    println("------------------------//----------------------------")
+    println("Write a command")
+    when(readLine()){
+        "verifyElastic" -> {
+            //todo verificar quais arquivos serão necessários validar
+            // validar arquivo por arquivo
+            println("Provide initial date time (yyyy/MM/dd-HH:mm)")
+            val initialMoment = (readLine() ?: throw NullPointerException()).toDateMillis("yyyy/MM/dd-HH:mm")
+            println("Provide final date time (yyyy/MM/dd-HH:mm)")
+            val finalMoment = (readLine() ?: throw NullPointerException()).toDateMillis("yyyy/MM/dd-HH:mm")
+
+
+
+        }
+        "?" -> {
+            showCommands()
+            getCommand()
+        }
+        else -> {
+            println("Command not recognized")
+            showCommands()
+            getCommand()
+        }
+    }
+}
+
+fun showCommands() {
+    println(
+        "Type 'verifyElastic' to verify ElasticSearch data"
+    )
+}
 
 //fun verifyRemoteData(originalFilePath: String, otsFilePath: String) {
 //    val elasticQuery: ElasticQuery = readObjectFromFile(

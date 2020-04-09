@@ -1,5 +1,6 @@
 package br.ufscar.auditchain.common
 
+import br.ufscar.auditchain.common.utility.DAY_MINUTES
 import java.io.FileInputStream
 import java.util.*
 
@@ -39,6 +40,19 @@ class Config {
         val resultMaxSize: Int
             get() = configFile.getProperty("resultMaxSize").toInt()
 
+        val filePath: String
+            get() = configFile.getProperty("filePath")
+
+        val instants: List<Long> by lazy {
+            val initializeInstantList = mutableListOf<Long>()
+            for (temp in frequency until DAY_MINUTES step frequency) {
+                initializeInstantList.add(temp)
+            }
+            initializeInstantList.add(DAY_MINUTES)
+
+            initializeInstantList
+        }
+
         override fun toString(): String =
             "elasticHost: $elasticHost\n" +
                     "elasticUser: $elasticUser\n" +
@@ -47,6 +61,7 @@ class Config {
                     "delay: $delay\n" +
                     "indexPattern: $indexPattern\n" +
                     "rangeParameter: $rangeParameter\n" +
-                    "resultMaxSize: $resultMaxSize"
+                    "resultMaxSize: $resultMaxSize\n" +
+                    "filePath: $filePath"
     }
 }

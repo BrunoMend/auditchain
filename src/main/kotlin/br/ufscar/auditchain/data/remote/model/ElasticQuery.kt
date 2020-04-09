@@ -1,15 +1,16 @@
 package br.ufscar.auditchain.data.remote.model
 
-import br.ufscar.auditchain.common.utils.toElasticDateFormat
-import br.ufscar.auditchain.data.io.toFileName
+import br.ufscar.auditchain.common.Config
+import br.ufscar.auditchain.common.utility.toElasticDateFormat
+import br.ufscar.auditchain.data.io.utility.toFileName
 import java.io.Serializable
 
 
-data class ElasticQuery(val indexPattern: String,
-                        val rangeParameter: String,
-                        val startAt: Long,
+data class ElasticQuery(val startAt: Long,
                         val finishIn: Long,
-                        val size: Int = 10000): Serializable {
+                        val indexPattern: String = Config.indexPattern,
+                        val rangeParameter: String = Config.rangeParameter,
+                        val size: Int = Config.resultMaxSize): Serializable {
 
     val query: String
         get() = "$rangeParameter:[${startAt.toElasticDateFormat()} TO ${finishIn.toElasticDateFormat()}]"

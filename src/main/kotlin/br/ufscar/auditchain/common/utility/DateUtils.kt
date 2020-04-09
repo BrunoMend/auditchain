@@ -1,23 +1,20 @@
-package br.ufscar.auditchain.common.utils
+package br.ufscar.auditchain.common.utility
 
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 const val DAY_MINUTES: Long = 1440
+const val ELASTIC_DATE_FORMAT: String = "yyyy-MM-dd'T'HH:mm:ss"
 
-val dateFormat: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-
-fun Date.toElasticDateFormat(): String = dateFormat.format(this)
+fun Date.toElasticDateFormat(pattern: String = ELASTIC_DATE_FORMAT): String = SimpleDateFormat(pattern).format(this)
 
 fun Long.toElasticDateFormat(): String = Date(this).toElasticDateFormat()
 
-fun String.toDate(): Date = dateFormat.parse(this)
+fun String.toDate(pattern: String = ELASTIC_DATE_FORMAT): Date = SimpleDateFormat(pattern).parse(this)
 
-fun String.toDateMillis(): Long = this.toDate().time
+fun String.toDateMillis(pattern: String = ELASTIC_DATE_FORMAT): Long = this.toDate(pattern).time
 
 val ZonedDateTime.minuteInDay: Long
     get() = minute + (hour * 60L)
@@ -30,5 +27,5 @@ fun ZonedDateTime.minuteInDayToDateMillis(minutes: Long): Long =
         .minusMinutes(minuteInDay)
         .minusSeconds(second.toLong())
         .plusMinutes(minutes)
-        .format(dateTimeFormatter)
+        .format(DateTimeFormatter.ofPattern(ELASTIC_DATE_FORMAT))
         .toDateMillis()
