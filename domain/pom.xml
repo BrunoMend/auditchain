@@ -9,40 +9,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>app</artifactId>
+    <artifactId>domain</artifactId>
     <packaging>jar</packaging>
 
-    <name>br.ufscar app</name>
-
-    <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>domain</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <!--This dependency must be prior to java-opentimestamps because
-            both have okio lib as a transitive dependency, causing version conflicts -->
-            <groupId>com.squareup.retrofit2</groupId>
-            <artifactId>retrofit</artifactId>
-            <version>2.7.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.retrofit2</groupId>
-            <artifactId>converter-scalars</artifactId>
-            <version>2.8.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.akarnokd</groupId>
-            <artifactId>rxjava3-retrofit-adapter</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.eternitywall</groupId>
-            <artifactId>java-opentimestamps</artifactId>
-            <version>1.18</version>
-        </dependency>
-    </dependencies>
+    <name>br.ufscar domain</name>
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>

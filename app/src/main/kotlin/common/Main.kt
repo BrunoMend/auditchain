@@ -3,26 +3,29 @@ package common
 import common.utility.toDateMillis
 import data.remote.infrastructure.RetrofitInitializer
 import data.remote.model.ElasticQuery
+import domain.HelloUseCase
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 
 fun main(args: Array<String>) {
-    val service = RetrofitInitializer().createElasticService()
 
-    TimerNotifier()
-        .getTimerObservable()
-        .map { ElasticQuery(it.first, it.second) }
-        .flatMapSingle { Single.just(Pair(it, service.getLogs(it.indexPattern, it.query, it.size))) }
-        .map { Pair(it.first, ElasticQuery.getRequestContent(it.second.blockingGet())) }
-        .subscribeOn(Schedulers.computation())
-        .subscribe(
-            { pair ->
-                val elasticQuery = pair.first
-                val logs = pair.second
-                if (logs.isNullOrEmpty() || logs == "[]")
-                    println("have no logs to stamp")
-                else
-                    println(logs)
+    HelloUseCase().hello()
+
+//    val service = RetrofitInitializer().createElasticService()
+//    TimerNotifier()
+//        .getTimerObservable()
+//        .map { ElasticQuery(it.first, it.second) }
+//        .flatMapSingle { Single.just(Pair(it, service.getLogs(it.indexPattern, it.query, it.size))) }
+//        .map { Pair(it.first, ElasticQuery.getRequestContent(it.second.blockingGet())) }
+//        .subscribeOn(Schedulers.computation())
+//        .subscribe(
+//            { pair ->
+//                val elasticQuery = pair.first
+//                val logs = pair.second
+//                if (logs.isNullOrEmpty() || logs == "[]")
+//                    println("have no logs to stamp")
+//                else
+//                    println(logs)
 //                println("unsaved: $elasticQuery")
 //                ObjectIO()
 //                    .write(elasticQuery.toString().toFileName(), elasticQuery)
@@ -34,14 +37,13 @@ fun main(args: Array<String>) {
 //                    writeObjectToFile(elasticQuery,"C:\\ots\\validate\\$elasticQuery")
 //                    writeObjectToFile(detachedFile.serialize(),"C:\\ots\\validate\\$elasticQuery.ots")
 //                    println(OpenTimestamps.info(detachedFile))
+//            },
+//            { error ->
+//                println(error.message)
+//            }
+//        )
 
-            },
-            { error ->
-                println(error.message)
-            }
-        )
-
-    getCommand()
+//    getCommand()
 }
 
 fun getCommand() {
