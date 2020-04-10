@@ -1,4 +1,4 @@
-package br.ufscar.auditchain.data.remote.infrastructure
+package data.remote.infrastructure
 
 import okhttp3.Credentials
 import okhttp3.Interceptor

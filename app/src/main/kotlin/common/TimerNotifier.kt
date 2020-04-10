@@ -1,8 +1,8 @@
-package br.ufscar.auditchain.common
+package common
 
-import br.ufscar.auditchain.common.utility.minuteInDay
-import br.ufscar.auditchain.common.utility.minuteInDayToDateMillis
-import br.ufscar.auditchain.common.utility.secondInDay
+import common.utility.minuteInDay
+import common.utility.minuteInDayToDateMillis
+import common.utility.secondInDay
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject

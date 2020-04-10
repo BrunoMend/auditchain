@@ -1,7 +1,7 @@
-package br.ufscar.auditchain.data.ots
+package data.ots
 
-//import br.ufscar.auditchain.data.io.readObjectFromFile
-//import br.ufscar.auditchain.data.io.writeObjectToFile
+//import data.io.readObjectFromFile
+//import data.io.writeObjectToFile
 //import com.eternitywall.ots.DetachedTimestampFile
 //import com.eternitywall.ots.OpenTimestamps
 //import com.eternitywall.ots.op.OpSHA256

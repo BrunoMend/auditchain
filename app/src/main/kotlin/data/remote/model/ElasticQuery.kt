@@ -1,8 +1,8 @@
-package br.ufscar.auditchain.data.remote.model
+package data.remote.model
 
-import br.ufscar.auditchain.common.Config
-import br.ufscar.auditchain.common.utility.toElasticDateFormat
-import br.ufscar.auditchain.data.io.utility.toFileName
+import common.Config
+import common.utility.toElasticDateFormat
+import data.io.utility.toFileName
 import java.io.Serializable
 
 

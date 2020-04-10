@@ -1,6 +1,6 @@
-package br.ufscar.auditchain.data.io.infrastructure
+package data.io.infrastructure
 
-import br.ufscar.auditchain.common.Config
+import common.Config
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single

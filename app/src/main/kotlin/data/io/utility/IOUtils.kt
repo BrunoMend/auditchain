@@ -1,4 +1,4 @@
-package br.ufscar.auditchain.data.io.utility
+package data.io.utility
 
 fun String.toFileName(fileExtension: String = ""): String =
     this.trim()

@@ -1,7 +1,7 @@
-package br.ufscar.auditchain.data.remote.infrastructure
+package data.remote.infrastructure
 
-import br.ufscar.auditchain.common.Config
-import br.ufscar.auditchain.data.remote.ElasticRemoteDataSource
+import common.Config
+import data.remote.ElasticRemoteDataSource
 import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

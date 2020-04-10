@@ -1,4 +1,4 @@
-package br.ufscar.auditchain.data.io.infrastructure
+package data.io.infrastructure
 
 import java.io.File
 import java.security.InvalidParameterException

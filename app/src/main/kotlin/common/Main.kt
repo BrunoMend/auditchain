@@ -1,8 +1,8 @@
-package br.ufscar.auditchain.common
+package common
 
-import br.ufscar.auditchain.common.utility.toDateMillis
-import br.ufscar.auditchain.data.remote.infrastructure.RetrofitInitializer
-import br.ufscar.auditchain.data.remote.model.ElasticQuery
+import common.utility.toDateMillis
+import data.remote.infrastructure.RetrofitInitializer
+import data.remote.model.ElasticQuery
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 

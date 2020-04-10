@@ -1,4 +1,4 @@
-package br.ufscar.auditchain.common.utility
+package common.utility
 
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime

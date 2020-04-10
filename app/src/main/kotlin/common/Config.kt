@@ -1,6 +1,6 @@
-package br.ufscar.auditchain.common
+package common
 
-import br.ufscar.auditchain.common.utility.DAY_MINUTES
+import common.utility.DAY_MINUTES
 import java.io.FileInputStream
 import java.util.*
 

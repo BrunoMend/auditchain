@@ -1,4 +1,4 @@
-package br.ufscar.auditchain.data.remote
+package data.remote
 
 import io.reactivex.rxjava3.core.Single
 import retrofit2.http.GET
