@@ -1,6 +1,5 @@
 package common
 
-import common.utility.DAY_MINUTES
 import java.io.FileInputStream
 import java.util.*
 
@@ -44,24 +43,14 @@ class Config {
             get() = configFile.getProperty("filePath")
 
         val instants: List<Long> by lazy {
+            val dayMinutes: Long = 1440
             val initializeInstantList = mutableListOf<Long>()
-            for (temp in frequency until DAY_MINUTES step frequency) {
+            for (temp in frequency until dayMinutes step frequency) {
                 initializeInstantList.add(temp)
             }
-            initializeInstantList.add(DAY_MINUTES)
+            initializeInstantList.add(dayMinutes)
 
             initializeInstantList
         }
-
-        override fun toString(): String =
-            "elasticHost: $elasticHost\n" +
-                    "elasticUser: $elasticUser\n" +
-                    "elasticPwds: $elasticPwds\n" +
-                    "frequency: $frequency\n" +
-                    "delay: $delay\n" +
-                    "indexPattern: $indexPattern\n" +
-                    "rangeParameter: $rangeParameter\n" +
-                    "resultMaxSize: $resultMaxSize\n" +
-                    "filePath: $filePath"
     }
 }
