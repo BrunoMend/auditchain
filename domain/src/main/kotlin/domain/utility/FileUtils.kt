@@ -1,4 +1,4 @@
-package data.io.utility
+package domain.utility
 
 fun String.toFileName(fileExtension: String = ""): String =
     this.trim()
@@ -11,4 +11,4 @@ fun String.toFileName(fileExtension: String = ""): String =
         .replace("<", "")
         .replace(">", "")
         .replace("|", "")
-        .plus(if (fileExtension.isNotEmpty()) ".$fileExtension" else "")
+        .plus(".$fileExtension")

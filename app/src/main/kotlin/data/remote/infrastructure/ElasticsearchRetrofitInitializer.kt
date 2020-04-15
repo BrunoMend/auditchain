@@ -1,19 +1,19 @@
 package data.remote.infrastructure
 
-import common.Config
-import data.remote.ElasticRemoteDataSource
+import data.remote.ElasticsearchRemoteDataSource
+import domain.model.ElasticsearchConfiguration
 import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
-class RetrofitInitializer {
+class ElasticsearchRetrofitInitializer(elasticsearchConfiguration: ElasticsearchConfiguration) {
 
     private val httpClient = OkHttpClient.Builder()
         .addInterceptor(
             BasicAuthInterceptor(
-                user = Config.elasticUser,
-                password = Config.elasticPwds
+                user = elasticsearchConfiguration.elasticUser,
+                password = elasticsearchConfiguration.elasticPwds
             )
         )
         .build()
@@ -22,10 +22,11 @@ class RetrofitInitializer {
         .client(httpClient)
         .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
         .addConverterFactory(ScalarsConverterFactory.create())
-        .baseUrl(Config.elasticHost)
+        .baseUrl(elasticsearchConfiguration.elasticHost)
         .build()
 
-    fun createElasticService(): ElasticRemoteDataSource = retrofit.create(
-        ElasticRemoteDataSource::class.java)
+    fun createElasticService(): ElasticsearchRemoteDataSource = retrofit.create(
+        ElasticsearchRemoteDataSource::class.java
+    )
 
 }

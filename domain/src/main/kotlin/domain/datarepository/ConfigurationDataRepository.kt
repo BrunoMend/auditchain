@@ -1,8 +1,10 @@
 package domain.datarepository
 
-import domain.model.Configuration
+import domain.model.AttestationConfiguration
+import domain.model.ElasticsearchConfiguration
 import io.reactivex.rxjava3.core.Single
 
 interface ConfigurationDataRepository {
-    fun getConfiguration(): Single<Configuration>
+    fun getElasticsearchConfiguration(): Single<ElasticsearchConfiguration>
+    fun getAttestationConfiguration(): Single<AttestationConfiguration>
 }

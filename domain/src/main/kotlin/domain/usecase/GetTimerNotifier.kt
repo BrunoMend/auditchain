@@ -1,7 +1,7 @@
 package domain.usecase
 
-import domain.datarepository.ConfigurationDataRepository
-import domain.model.Configuration
+import domain.model.AttestationConfiguration
+import domain.model.TimeInterval
 import domain.utility.minuteInDay
 import domain.utility.minuteInDayToDateMillis
 import domain.utility.secondInDay
@@ -13,19 +13,14 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
-class GetPeriodicallyNotifier(
-    configurationDataRepository: ConfigurationDataRepository,
+class GetTimerNotifier(
+    private val attestationConfiguration: AttestationConfiguration,
     private val executorScheduler: Scheduler,
     private val postExecutionScheduler: Scheduler
 ) {
 
-    private val timerSubject: PublishSubject<Pair<Long, Long>> = PublishSubject.create()
-    fun getObservable(): Observable<Pair<Long, Long>> = timerSubject.observeOn(postExecutionScheduler)
-
-    private val config: Configuration =
-        configurationDataRepository
-            .getConfiguration()
-            .blockingGet()
+    private val timerSubject: PublishSubject<TimeInterval> = PublishSubject.create()
+    fun getObservable(): Observable<TimeInterval> = timerSubject.observeOn(postExecutionScheduler)
 
     init {
         nextNotify()
@@ -37,21 +32,21 @@ class GetPeriodicallyNotifier(
         val zonedNow = ZonedDateTime.of(localNow, currentZone)
 
         val previousInstant = try {
-            config.instants.last { it <= zonedNow.minuteInDay }
+            attestationConfiguration.timeIntervalList.last { it <= zonedNow.minuteInDay }
         } catch (e: NoSuchElementException) {
-            config.instants.last()
+            attestationConfiguration.timeIntervalList.last()
         }
 
         val nextInstant = try {
-            config.instants.first { it > zonedNow.minuteInDay }
+            attestationConfiguration.timeIntervalList.first { it > zonedNow.minuteInDay }
         } catch (e: NoSuchElementException) {
-            config.instants.first()
+            attestationConfiguration.timeIntervalList.first()
         }
 
-        val delay = (nextInstant * 60) + config.delay - zonedNow.secondInDay
+        val delay = (nextInstant * 60) + attestationConfiguration.delay - zonedNow.secondInDay
         executorScheduler.scheduleDirect({
             timerSubject.onNext(
-                Pair(
+                TimeInterval(
                     zonedNow.minuteInDayToDateMillis(previousInstant),
                     zonedNow.minuteInDayToDateMillis(nextInstant)
                 )

@@ -5,7 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface ElasticRemoteDataSource {
+interface ElasticsearchRemoteDataSource {
 
     //method GET must not have a request body.
     //https://github.com/square/okhttp/issues/3154

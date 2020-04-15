@@ -1,11 +1,16 @@
 package domain.utility
 
+import domain.model.TimeInterval
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 const val DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
+
+fun Date.toDateFormat(pattern: String = DEFAULT_DATE_FORMAT): String = SimpleDateFormat(pattern).format(this)
+
+fun Long.toDateFormat(): String = Date(this).toDateFormat()
 
 fun String.toDate(pattern: String = DEFAULT_DATE_FORMAT): Date = SimpleDateFormat(pattern).parse(this)
 
@@ -24,3 +29,7 @@ fun ZonedDateTime.minuteInDayToDateMillis(minutes: Long): Long =
         .plusMinutes(minutes)
         .format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT))
         .toDateMillis()
+
+fun getTimeInterval(moment: Long, timeIntervalList: List<Long>): TimeInterval {
+    TODO("not implemented yet")
+}
