@@ -4,5 +4,6 @@
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/app/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/domain/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/kotlin" charset="UTF-8" />
   </component>
 </project>
