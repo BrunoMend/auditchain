@@ -4,8 +4,9 @@ import data.file.infrastructure.PropertiesStorage
 import data.file.model.AttestationConfigurationFM
 import data.file.model.ElasticsearchConfigurationFM
 import io.reactivex.rxjava3.core.Single
+import javax.inject.Inject
 
-class PropertiesFileDataSource(private val propertiesStorage: PropertiesStorage) {
+class PropertiesFileDataSource @Inject constructor(private val propertiesStorage: PropertiesStorage) {
     private val configFilePath = "C:\\ots\\config.properties" //TODO auto get file path
 
     fun getElasticsearchConfiguration(): Single<ElasticsearchConfigurationFM> =

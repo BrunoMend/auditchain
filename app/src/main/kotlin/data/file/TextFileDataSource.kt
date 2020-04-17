@@ -2,10 +2,10 @@ package data.file
 
 import data.file.infrastructure.TextStorage
 import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
+import javax.inject.Inject
 
-class TextFileDataSource(private val textStorage: TextStorage, private val scheduler: Scheduler) {
+class TextFileDataSource @Inject constructor(private val textStorage: TextStorage) {
 
     fun upsertLine(path: String, fileName: String, content: String): Completable =
         textStorage.insertLine("$path$fileName", content)

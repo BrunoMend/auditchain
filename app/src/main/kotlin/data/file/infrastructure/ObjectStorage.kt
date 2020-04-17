@@ -1,10 +1,13 @@
 package data.file.infrastructure
 
+import domain.di.IOScheduler
 import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
 import java.io.*
+import javax.inject.Inject
 
-class ObjectStorage {
+class ObjectStorage @Inject constructor(@IOScheduler private val ioScheduler: Scheduler) {
 
     fun <T : Serializable> writeObject(filePathName: String, obj: T): Completable =
         Completable.fromAction {
@@ -13,7 +16,7 @@ class ObjectStorage {
             objectOut.writeObject(obj)
             objectOut.close()
             fileOutputStream.close()
-        }
+        }.subscribeOn(ioScheduler)
 
     fun <T : Serializable> readObject(filePathName: String): Single<T> =
         Single.fromCallable {
@@ -23,6 +26,6 @@ class ObjectStorage {
             objectIn.close()
             fileInputStream.close()
             result
-        }
+        }.subscribeOn(ioScheduler)
 
 }

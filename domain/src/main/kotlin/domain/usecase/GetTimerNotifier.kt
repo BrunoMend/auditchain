@@ -1,5 +1,7 @@
 package domain.usecase
 
+import domain.datarepository.ConfigurationDataRepository
+import domain.di.ComputationScheduler
 import domain.model.AttestationConfiguration
 import domain.model.TimeInterval
 import domain.utility.minuteInDay
@@ -12,15 +14,20 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class GetTimerNotifier(
-    private val attestationConfiguration: AttestationConfiguration,
-    private val executorScheduler: Scheduler,
-    private val postExecutionScheduler: Scheduler
+class GetTimerNotifier @Inject constructor(
+    private val configurationDataRepository: ConfigurationDataRepository,
+    @ComputationScheduler private val executorScheduler: Scheduler
 ) {
 
     private val timerSubject: PublishSubject<TimeInterval> = PublishSubject.create()
-    fun getObservable(): Observable<TimeInterval> = timerSubject.observeOn(postExecutionScheduler)
+    fun getObservable(): Observable<TimeInterval> = timerSubject
+
+    //TODO remove blockingGet
+    private val attestationConfiguration: AttestationConfiguration by lazy {
+        configurationDataRepository.getAttestationConfiguration().blockingGet()
+    }
 
     init {
         nextNotify()
