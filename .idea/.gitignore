@@ -1,2 +1,14 @@
-# Default ignored files
+# User-specific configurations
+/shelf/
+/libraries/
 /workspace.xml
+/tasks.xml
+/.name
+/copyright/profiles_settings.xml
+/encodings.xml
+/modules.xml
+/scopes/scope_settings.xml
+/caches
+#/compiler.xml
+#/misc.xml
+#/vcs.xml

@@ -17,15 +17,15 @@ class TimestampRepository @Inject constructor(
     private val objectFileDataSource: ObjectFileDataSource
 ) : TimestampDataRepository {
 
-    override fun stampData(data: ByteArray, proofFileName: String): Completable =
-        Single.zip<AttestationConfiguration, ByteArray, Pair<AttestationConfiguration, ByteArray>>(
-            configurationRepository.getAttestationConfiguration(), openTimestampsDataSource.stamp(data),
-            BiFunction { attestationConfig, proofData -> Pair(attestationConfig, proofData) })
-            .flatMapCompletable { objectFileDataSource.write(it.first.attestationFilePath, proofFileName, it.second) }
+    override fun stampData(data: ByteArray, proofFileName: String): Completable = TODO()
+//        Single.zip<AttestationConfiguration, ByteArray, Pair<AttestationConfiguration, ByteArray>>(
+//            configurationRepository.getAttestationConfiguration(), openTimestampsDataSource.stamp(data),
+//            BiFunction { attestationConfig, proofData -> Pair(attestationConfig, proofData) })
+//            .flatMapCompletable { objectFileDataSource.write(it.first.attestationFilePath, proofFileName, it.second) }
 
-    override fun verifyStamp(data: ByteArray, proofFileName: String): Single<List<Attestation>> =
-        configurationRepository.getAttestationConfiguration()
-            .flatMap { objectFileDataSource.read<ByteArray>(it.attestationFilePath, proofFileName) }
-            .flatMap { openTimestampsDataSource.verify(data, it) }
-            .map { it.toDomain() }
+    override fun verifyStamp(data: ByteArray, proofFileName: String): Single<List<Attestation>> = TODO()
+//        configurationRepository.getAttestationConfiguration()
+//            .flatMap { objectFileDataSource.read<ByteArray>(it.attestationFilePath, proofFileName) }
+//            .flatMap { openTimestampsDataSource.verify(data, it) }
+//            .map { it.toDomain() }
 }

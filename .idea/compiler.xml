@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <annotationProcessing>
-      <profile default="true" name="Default" enabled="true" />
-      <profile name="Annotation profile for br.ufscar auditchain" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-sources/apt-test" />
-        <outputRelativeToContentRoot value="true" />
-        <module name="app" />
-        <module name="domain" />
-      </profile>
-    </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="testing" target="1.5" />
+    <bytecodeTargetLevel target="11">
+      <module name="app" target="1.6" />
+      <module name="domain" target="1.6" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -1,0 +1,30 @@
+
+buildscript {
+    ext.kotlin_version = '1.3.72'
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+}
+
+// Importing this dependency here has no conflict
+// But I really don't want to leave her here
+//dependencies {
+//    implementation "com.eternitywall:java-opentimestamps:1.18"
+//}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://maven.google.com/' }
+    }
+}

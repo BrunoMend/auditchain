@@ -1,6 +1,6 @@
 package common.di
 
-import common.Main
+import common.Application
 import dagger.Component
 import domain.datarepository.ElasticsearchDataRepository
 import domain.di.ComputationScheduler
@@ -18,5 +18,5 @@ interface ApplicationComponent {
     fun computationScheduler(): Scheduler
     fun logger(): Logger
     fun elasticsearchDataRepository(): ElasticsearchDataRepository
-    fun inject(main: Main)
+    fun inject(application: Application)
 }
