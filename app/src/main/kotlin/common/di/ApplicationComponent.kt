@@ -2,7 +2,9 @@ package common.di
 
 import common.Application
 import dagger.Component
+import domain.datarepository.ConfigurationDataRepository
 import domain.datarepository.ElasticsearchDataRepository
+import domain.datarepository.TimestampDataRepository
 import domain.di.ComputationScheduler
 import domain.di.IOScheduler
 import domain.utility.Logger
@@ -17,6 +19,8 @@ interface ApplicationComponent {
     @ComputationScheduler
     fun computationScheduler(): Scheduler
     fun logger(): Logger
-    fun elasticsearchDataRepository(): ElasticsearchDataRepository
+    fun elasticsearchRepository(): ElasticsearchDataRepository
+    fun configurationRepository(): ConfigurationDataRepository
+    fun timestampRepository(): TimestampDataRepository
     fun inject(application: Application)
 }

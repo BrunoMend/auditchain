@@ -2,13 +2,14 @@ package common.di
 
 import dagger.Module
 import dagger.Provides
-import data.file.model.ElasticsearchConfigurationFM
 import data.remote.ElasticsearchRemoteDataSource
 import data.remote.infrastructure.BasicAuthInterceptor
 import data.repository.ConfigurationRepository
 import data.repository.ElasticsearchRepository
+import data.repository.TimestampRepository
 import domain.datarepository.ConfigurationDataRepository
 import domain.datarepository.ElasticsearchDataRepository
+import domain.datarepository.TimestampDataRepository
 import domain.di.ComputationScheduler
 import domain.di.IOScheduler
 import domain.model.ElasticsearchConfiguration
@@ -19,8 +20,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import java.io.FileInputStream
-import java.util.*
 import javax.inject.Singleton
 
 @Module
@@ -44,19 +43,8 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun elasticsearchConfiguration(): ElasticsearchConfiguration {
-        val properties = Properties()
-        properties.load(FileInputStream("C:\\ots\\config.properties"))
-        return ElasticsearchConfiguration(
-            properties.getProperty("elasticHost"),
-            properties.getProperty("elasticUser"),
-            properties.getProperty("elasticPwds"),
-            properties.getProperty("indexPattern"),
-            properties.getProperty("rangeParameter"),
-            properties.getProperty("resultMaxSize").toInt()
-        )
-    }
-//        ConfigurationRepository().getElasticsearchConfiguration().blockingGet()
+    fun elasticsearchConfiguration(configurationRepository: ConfigurationDataRepository): ElasticsearchConfiguration =
+        configurationRepository.getElasticsearchConfiguration().blockingGet()
 
     @Provides
     @Singleton
@@ -96,4 +84,8 @@ class ApplicationModule {
     fun configurationDataRepository(configurationRepository: ConfigurationRepository)
             : ConfigurationDataRepository = configurationRepository
 
+    @Provides
+    @Singleton
+    fun timestampDataRepository(timestampRepository: TimestampRepository)
+            : TimestampDataRepository = timestampRepository
 }

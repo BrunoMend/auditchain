@@ -18,6 +18,7 @@ class ObjectStorage @Inject constructor(@IOScheduler private val ioScheduler: Sc
             fileOutputStream.close()
         }.subscribeOn(ioScheduler)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T : Serializable> readObject(filePathName: String): Single<T> =
         Single.fromCallable {
             val fileInputStream = FileInputStream(filePathName)

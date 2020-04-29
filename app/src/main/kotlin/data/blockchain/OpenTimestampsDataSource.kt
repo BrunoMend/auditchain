@@ -4,11 +4,12 @@ package data.blockchain
 //import com.eternitywall.ots.OpenTimestamps
 //import com.eternitywall.ots.VerifyResult
 //import com.eternitywall.ots.op.OpSHA256
-//import domain.exception.InvalidAttestationException
-//import io.reactivex.rxjava3.core.Single
-//import java.util.HashMap
+import domain.exception.InvalidAttestationException
+import io.reactivex.rxjava3.core.Single
+import java.util.HashMap
+import javax.inject.Inject
 
-class OpenTimestampsDataSource {
+class OpenTimestampsDataSource @Inject constructor() {
 //    fun stamp(data: ByteArray): Single<ByteArray> =
 //        Single.fromCallable {
 //            val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), data)
