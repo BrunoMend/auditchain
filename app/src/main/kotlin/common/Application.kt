@@ -6,6 +6,7 @@ import common.di.DaggerApplicationComponent
 import domain.usecase.GetElasticsearchData
 import domain.usecase.GetTimerNotifier
 import domain.usecase.StampData
+import io.reactivex.rxjava3.core.Completable
 import javax.inject.Inject
 
 class Application @Inject constructor() {
@@ -31,12 +32,13 @@ class Application @Inject constructor() {
         getTimerNotifier
             .getObservable()
             .flatMapSingle { getElasticsearchData.getSingle(it) }
-                //todo get file name
-//            .flatMapCompletable { stampData.getCompletable(it.toByteArray(), "") }
-            .subscribe(
-                { println(it) },
-                { println(it) }
-            )
+            .flatMapCompletable {
+                if (it.first.isNotEmpty()) {
+                    println("Stamping: \n ${it.first} \n File proof: ${it.second}")
+                    stampData.getCompletable(it.first.toByteArray(), it.second)
+                } else Completable.complete()
+            }.onErrorReturn { Completable.complete() }
+            .subscribe()
 
         readLine()
     }

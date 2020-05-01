@@ -12,12 +12,8 @@ dependencies {
     implementation "com.google.dagger:dagger:2.27"
     kapt "com.google.dagger:dagger-compiler:2.27"
 
-    implementation "com.squareup.retrofit2:retrofit:2.7.2"
-    implementation "com.squareup.retrofit2:converter-scalars:2.7.2"
-    implementation "com.github.akarnokd:rxjava3-retrofit-adapter:3.0.0"
-
+    implementation "com.eternitywall:java-opentimestamps:1.18"
     implementation project(':domain')
-    implementation project(':timestamp')
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

@@ -9,7 +9,7 @@ import javax.inject.Inject
 class ObjectFileDataSource @Inject constructor(private val objectStorage: ObjectStorage) {
 
     fun <T : Serializable> write(path: String, fileName: String, obj: T): Completable =
-        objectStorage.writeObject("$path$fileName", obj)
+        objectStorage.writeObject(path, fileName, obj)
 
     fun <T : Serializable> read(path: String, fileName: String): Single<T> =
         objectStorage.readObject<T>("$path$fileName")

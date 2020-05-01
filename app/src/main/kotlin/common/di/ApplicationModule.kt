@@ -6,9 +6,11 @@ import data.remote.ElasticsearchRemoteDataSource
 import data.remote.infrastructure.BasicAuthInterceptor
 import data.repository.ConfigurationRepository
 import data.repository.ElasticsearchRepository
+import data.repository.FileRepository
 import data.repository.TimestampRepository
 import domain.datarepository.ConfigurationDataRepository
 import domain.datarepository.ElasticsearchDataRepository
+import domain.datarepository.FileDataRepository
 import domain.datarepository.TimestampDataRepository
 import domain.di.ComputationScheduler
 import domain.di.IOScheduler
@@ -88,4 +90,9 @@ class ApplicationModule {
     @Singleton
     fun timestampDataRepository(timestampRepository: TimestampRepository)
             : TimestampDataRepository = timestampRepository
+
+    @Provides
+    @Singleton
+    fun fileDataRepository(fileRepository: FileRepository)
+            : FileDataRepository = fileRepository
 }

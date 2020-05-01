@@ -9,9 +9,11 @@ import javax.inject.Inject
 
 class ObjectStorage @Inject constructor(@IOScheduler private val ioScheduler: Scheduler) {
 
-    fun <T : Serializable> writeObject(filePathName: String, obj: T): Completable =
+    fun <T : Serializable> writeObject(path: String, fileName: String, obj: T): Completable =
         Completable.fromAction {
-            val fileOutputStream = FileOutputStream(filePathName)
+            val file = File(path)
+            file.mkdirs()
+            val fileOutputStream = FileOutputStream("$path$fileName")
             val objectOut = ObjectOutputStream(fileOutputStream)
             objectOut.writeObject(obj)
             objectOut.close()

@@ -21,7 +21,12 @@ class ElasticsearchRepository @Inject constructor(
                 )
             }.map {
                 val initLogs = "\"hits\":["
-                it.substring((it.indexOf(initLogs) + initLogs.length - 1), it.lastIndexOf("]") + 1)
+                val result = it.substring((it.indexOf(initLogs) + initLogs.length - 1), it.lastIndexOf("]") + 1)
+                if (result.isNotEmpty() && result != "[]") result else ""
             }
+
+    override fun getFileName(timeInterval: TimeInterval): Single<String> =
+        configurationRepository.getElasticsearchConfiguration()
+            .map { it.getDefaultFileName(timeInterval) }
 
 }
