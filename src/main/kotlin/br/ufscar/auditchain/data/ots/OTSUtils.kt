@@ -1,5 +1,7 @@
-package br.ufscar.utils
+package br.ufscar.auditchain.data.ots
 
+import br.ufscar.auditchain.data.io.readObjectFromFile
+import br.ufscar.auditchain.data.io.writeObjectToFile
 import com.eternitywall.ots.DetachedTimestampFile
 import com.eternitywall.ots.OpenTimestamps
 import com.eternitywall.ots.op.OpSHA256
@@ -16,7 +18,10 @@ fun stamp(filePath: String) {
 }
 
 fun getInfo(filePath: String) {
-    val detachedFile = DetachedTimestampFile.deserialize(readObjectFromFile(filePath) as ByteArray)
+    val detachedFile = DetachedTimestampFile.deserialize(
+        readObjectFromFile(
+            filePath
+        ) as ByteArray)
     println(OpenTimestamps.info(detachedFile))
 }
 

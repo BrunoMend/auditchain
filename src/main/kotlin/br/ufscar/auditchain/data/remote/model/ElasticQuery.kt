@@ -1,7 +1,7 @@
-package br.ufscar.data.remote.model
+package br.ufscar.auditchain.data.remote.model
 
-import br.ufscar.utils.toElasticDateFormat
-import br.ufscar.utils.toFileName
+import br.ufscar.auditchain.common.utils.toElasticDateFormat
+import br.ufscar.auditchain.data.io.toFileName
 import java.io.Serializable
 
 
@@ -15,8 +15,7 @@ data class ElasticQuery(val indexPattern: String,
         get() = "$rangeParameter:[${startAt.toElasticDateFormat()} TO ${finishIn.toElasticDateFormat()}]"
 
     override fun toString(): String = "$indexPattern($rangeParameter[${startAt}TO${finishIn}])".toFileName()
-
-
+    
     companion object {
         fun getRequestContent(responseBody: String?): String? {
             return if(responseBody.isNullOrEmpty()) null

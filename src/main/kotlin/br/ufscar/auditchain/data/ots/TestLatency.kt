@@ -1,5 +1,9 @@
-package br.ufscar.utils
+package br.ufscar.auditchain.data.ots
 
+import br.ufscar.auditchain.data.io.createFile
+import br.ufscar.auditchain.data.io.log
+import br.ufscar.auditchain.data.io.readObjectFromFile
+import br.ufscar.auditchain.data.io.writeObjectToFile
 import com.eternitywall.ots.DetachedTimestampFile
 import com.eternitywall.ots.OpenTimestamps
 import com.eternitywall.ots.op.OpSHA256
@@ -35,7 +39,11 @@ class TestLatency(private val folder: String) {
         val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), file)
         OpenTimestamps.stamp(detachedFile)
         stampedAt = LocalDateTime.now()
-        log("stamp", "File $filePath stamped at: $stampedAt", logFilePath)
+        log(
+            "stamp",
+            "File $filePath stamped at: $stampedAt",
+            logFilePath
+        )
         writeObjectToFile(detachedFile.serialize(), otsPath)
         testLatencyVerify()
     }

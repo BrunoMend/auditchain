@@ -1,11 +1,12 @@
-package br.ufscar.data.remote
+package br.ufscar.auditchain.data.remote
 
+import io.reactivex.rxjava3.core.Single
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface RemoteDataSource {
+interface ElasticRemoteDataSource {
 
     //method GET must not have a request body.
     //https://github.com/square/okhttp/issues/3154
@@ -18,5 +19,5 @@ interface RemoteDataSource {
     @GET("/{indexPattern}/_search")
     fun getLogs(@Path("indexPattern") indexPattern: String,
                 @Query("q") query: String,
-                @Query("size") size: Int = 10000): Call<String>
+                @Query("size") size: Int): Single<String>
 }

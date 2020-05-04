@@ -1,4 +1,4 @@
-package br.ufscar.utils
+package br.ufscar.auditchain.data.io
 
 import java.io.*
 
