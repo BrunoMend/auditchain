@@ -30,6 +30,6 @@ fun ZonedDateTime.minuteInDayToDateMillis(minutes: Long): Long =
         .format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT))
         .toDateMillis()
 
-//fun getTimeInterval(moment: Long, timeIntervalList: List<Long>): TimeInterval {
-//    TODO("not implemented yet")
-//}
+fun getTimeInterval(moment: Long, timeIntervalList: List<Long>): TimeInterval {
+    TODO("not implemented yet")
+}

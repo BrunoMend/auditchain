@@ -1,6 +1,6 @@
 package common.di
 
-import common.Application
+import commands.Application
 import dagger.Component
 import domain.datarepository.ConfigurationDataRepository
 import domain.datarepository.ElasticsearchDataRepository
