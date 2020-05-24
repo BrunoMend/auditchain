@@ -1,0 +1,5 @@
+# Build application files
+/*/build
+/build
+/.gradle
+*.iml

@@ -1,0 +1,5 @@
+rootProject.name = 'auditchain'
+include 'app'
+include 'domain'
+include 'timestamp'
+

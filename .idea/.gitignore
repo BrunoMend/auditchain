@@ -1,2 +1,5 @@
-# Default ignored files
+# User-specific configurations
 /workspace.xml
+#/compiler.xml
+#/misc.xml
+#/vcs.xml
