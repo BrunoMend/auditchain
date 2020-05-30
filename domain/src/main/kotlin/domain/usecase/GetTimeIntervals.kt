@@ -1,50 +1,33 @@
 package domain.usecase
 
-import domain.datarepository.ConfigurationDataRepository
 import domain.di.ComputationScheduler
+import domain.model.AttestationConfiguration
 import domain.model.TimeInterval
-import domain.utility.toDateMillis
+import domain.utility.getNextTimeInterval
+import domain.utility.getPreviousTimeInterval
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import javax.inject.Inject
 
 class GetTimeIntervals @Inject constructor(
-    private val configurationDataRepository: ConfigurationDataRepository,
+    private val attestationConfiguration: AttestationConfiguration,
     @ComputationScheduler private val executorScheduler: Scheduler
 ) {
-    fun getSingle(startAt: String, finishIn: String): Single<List<TimeInterval>> {
-//        val localNow = LocalDateTime.parse()
-//        val currentZone = ZoneId.systemDefault()
-//        val zonedNow = ZonedDateTime.of(localNow, currentZone)
+    fun getSingle(startAt: Long, finishIn: Long): Single<List<TimeInterval>> =
+        Single.fromCallable<List<TimeInterval>> {
+            val firstMomentInterval: Long =
+                getPreviousTimeInterval(startAt, attestationConfiguration.frequencyMillis, false)
+            val finishMomentInterval: Long =
+                getNextTimeInterval(finishIn, attestationConfiguration.frequencyMillis, false)
 
-        //TODO
-        // get all time intervals between start and finish moment
-        // get a list of time intervals from all day long
-        //
+            val intervalList = mutableListOf<TimeInterval>()
+            var interval: Long = firstMomentInterval
+            while (interval < finishMomentInterval) {
+                val nextInterval = getNextTimeInterval(interval, attestationConfiguration.frequencyMillis)
+                intervalList.add(TimeInterval(interval, nextInterval))
+                interval = nextInterval
+            }
 
-        val attestationConfiguration = configurationDataRepository.getAttestationConfiguration().blockingGet()
-        val frequencyInterval = attestationConfiguration.frequency * 60000
-
-        val startDate = startAt.take(10).toDateMillis("yyyy-MM-dd")
-        val startDateTime = startAt.toDateMillis()
-        val firstInterval = startDateTime - startDateTime.rem(frequencyInterval) + startDate
-
-        val finishDate = finishIn.take(10).toDateMillis("yyyy-MM-dd")
-        val finishDateTime = startAt.toDateMillis()
-        val lastInterval = finishDateTime - finishDateTime.rem(frequencyInterval) + finishDate + frequencyInterval
-
-        val intervalList: MutableList<TimeInterval> = mutableListOf(TimeInterval(firstInterval, lastInterval))
-
-        for (interval in firstInterval..lastInterval) {
-
-            //todo
-            // list of days in datemillis?
-            // increment intervalList considering midnight
-        }
-
-        return Single.just(intervalList)
-    }
+            intervalList
+        }.subscribeOn(executorScheduler)
 }

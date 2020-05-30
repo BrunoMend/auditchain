@@ -15,4 +15,10 @@ data class AttestationConfiguration(
             instantList.add(dayMinutes)
             return instantList
         }
+
+    val frequencyMillis: Long
+        get() = frequency * 60000
+
+    val delayMillis: Long
+        get() = delay * 1000
 }

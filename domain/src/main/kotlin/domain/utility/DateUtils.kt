@@ -1,35 +1,47 @@
 package domain.utility
 
-import domain.model.TimeInterval
 import java.text.SimpleDateFormat
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 const val DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
+const val MILLIS_IN_A_DAY: Long = 86400000
+val TIME_ZONE_MILLIS = -3 * 3600000 //todo get local Time Zone value
 
 fun Date.toDateFormat(pattern: String = DEFAULT_DATE_FORMAT): String = SimpleDateFormat(pattern).format(this)
 
-fun Long.toDateFormat(): String = Date(this).toDateFormat()
+fun Long.toDateFormat(pattern: String = DEFAULT_DATE_FORMAT): String = Date(this).toDateFormat(pattern)
 
 fun String.toDate(pattern: String = DEFAULT_DATE_FORMAT): Date = SimpleDateFormat(pattern).parse(this)
 
 fun String.toDateMillis(pattern: String = DEFAULT_DATE_FORMAT): Long = this.toDate(pattern).time
 
-val ZonedDateTime.minuteInDay: Long
-    get() = minute + (hour * 60L)
+fun getMomentMillisOfDay(moment: Long): Long {
+    val millisOfDay = moment.rem(MILLIS_IN_A_DAY) + TIME_ZONE_MILLIS
+    return when {
+        millisOfDay < 0 -> millisOfDay + MILLIS_IN_A_DAY
+        millisOfDay > MILLIS_IN_A_DAY -> millisOfDay - MILLIS_IN_A_DAY
+        else -> millisOfDay
+    }
+}
 
-val ZonedDateTime.secondInDay: Long
-    get() = (minute + (hour * 60L)) * 60L + second
+fun getNextTimeInterval(moment: Long, frequencyMillis: Long, disregardCurrent: Boolean = true): Long {
+    val momentMillisOfDay = getMomentMillisOfDay(moment)
+    val momentDayMidnight = moment - momentMillisOfDay
+    val millisToAdd = momentMillisOfDay.rem(frequencyMillis)
+    return when {
+        momentMillisOfDay > (MILLIS_IN_A_DAY - frequencyMillis) -> momentDayMidnight + MILLIS_IN_A_DAY
+        millisToAdd == 0L -> if (disregardCurrent) moment + frequencyMillis else moment
+        else -> moment - millisToAdd + frequencyMillis
+    }
+}
 
-fun ZonedDateTime.minuteInDayToDateMillis(minutes: Long): Long =
-    this.toLocalDateTime()
-        .minusMinutes(minuteInDay)
-        .minusSeconds(second.toLong())
-        .plusMinutes(minutes)
-        .format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT))
-        .toDateMillis()
-
-fun getTimeInterval(moment: Long, timeIntervalList: List<Long>): TimeInterval {
-    TODO("not implemented yet")
+fun getPreviousTimeInterval(moment: Long, frequencyMillis: Long, disregardCurrent: Boolean = true): Long {
+    val momentMillisOfDay = getMomentMillisOfDay(moment)
+    val momentDayMidnight = moment - momentMillisOfDay
+    val millisToDeduct = momentMillisOfDay.rem(frequencyMillis)
+    return when {
+        momentMillisOfDay < frequencyMillis -> momentDayMidnight
+        millisToDeduct == 0L -> if (disregardCurrent) moment - frequencyMillis else moment
+        else -> moment - millisToDeduct
+    }
 }

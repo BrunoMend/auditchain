@@ -14,6 +14,7 @@ import domain.datarepository.FileDataRepository
 import domain.datarepository.TimestampDataRepository
 import domain.di.ComputationScheduler
 import domain.di.IOScheduler
+import domain.model.AttestationConfiguration
 import domain.model.ElasticsearchConfiguration
 import domain.utility.Logger
 import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory
@@ -50,6 +51,11 @@ class ApplicationModule {
 
     @Provides
     @Singleton
+    fun attestationConfiguration(configurationRepository: ConfigurationDataRepository): AttestationConfiguration =
+        configurationRepository.getAttestationConfiguration().blockingGet()
+
+    @Provides
+    @Singleton
     fun elasticsearchHttpClient(elasticsearchConfiguration: ElasticsearchConfiguration): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(
@@ -78,13 +84,13 @@ class ApplicationModule {
         retrofit.create(ElasticsearchRemoteDataSource::class.java)
 
     @Provides
-    fun elasticsearchDataRepository(elasticsearchRepository: ElasticsearchRepository)
-            : ElasticsearchDataRepository = elasticsearchRepository
-
-    @Provides
     @Singleton
     fun configurationDataRepository(configurationRepository: ConfigurationRepository)
             : ConfigurationDataRepository = configurationRepository
+
+    @Provides
+    fun elasticsearchDataRepository(elasticsearchRepository: ElasticsearchRepository)
+            : ElasticsearchDataRepository = elasticsearchRepository
 
     @Provides
     @Singleton

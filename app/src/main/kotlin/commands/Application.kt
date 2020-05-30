@@ -16,7 +16,7 @@ class Application @Inject constructor() : CliktCommand(name = "auditchain") {
     }
 
     @Inject
-    lateinit var stampElasticsearch: StampElasticsearch
+    lateinit var stampElasticsearch: StampElasticsearchCommand
 
     init {
         component.inject(this)
