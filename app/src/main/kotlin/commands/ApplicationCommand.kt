@@ -7,7 +7,7 @@ import common.di.ApplicationModule
 import common.di.DaggerApplicationComponent
 import javax.inject.Inject
 
-class Application @Inject constructor() : CliktCommand(name = "auditchain") {
+class ApplicationCommand @Inject constructor() : CliktCommand(name = "auditchain") {
 
     private val component: ApplicationComponent by lazy {
         DaggerApplicationComponent.builder()

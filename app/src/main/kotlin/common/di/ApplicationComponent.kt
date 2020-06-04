@@ -1,6 +1,6 @@
 package common.di
 
-import commands.Application
+import commands.ApplicationCommand
 import dagger.Component
 import domain.datarepository.ConfigurationDataRepository
 import domain.datarepository.ElasticsearchDataRepository
@@ -24,5 +24,5 @@ interface ApplicationComponent {
     fun configurationRepository(): ConfigurationDataRepository
     fun timestampRepository(): TimestampDataRepository
     fun fileRepository(): FileDataRepository
-    fun inject(application: Application)
+    fun inject(applicationCommand: ApplicationCommand)
 }

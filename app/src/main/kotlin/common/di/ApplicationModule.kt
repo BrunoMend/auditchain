@@ -2,6 +2,8 @@ package common.di
 
 import dagger.Module
 import dagger.Provides
+import data.database.infrastructure.TableAttestation
+import data.database.infrastructure.TableBlockchainPublication
 import data.remote.ElasticsearchRemoteDataSource
 import data.remote.infrastructure.BasicAuthInterceptor
 import data.repository.ConfigurationRepository
@@ -23,6 +25,8 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.sql.Connection
+import java.sql.DriverManager
 import javax.inject.Singleton
 
 @Module
@@ -78,13 +82,22 @@ class ApplicationModule {
             .baseUrl(elasticsearchConfiguration.elasticHost)
             .build()
 
-
     @Provides
     fun elasticsearchRemoteDataSource(retrofit: Retrofit): ElasticsearchRemoteDataSource =
         retrofit.create(ElasticsearchRemoteDataSource::class.java)
 
     @Provides
-    @Singleton
+    fun sqlConnection(): Connection {
+        val connection = DriverManager.getConnection("jdbc:sqlite:C:/ots/test3.db")
+        val statement = connection.createStatement()
+        statement.queryTimeout = 10
+        statement.executeUpdate(TableAttestation.CREATE_TABLE)
+        statement.executeUpdate(TableBlockchainPublication.CREATE_TABLE)
+        statement.close()
+        return connection
+    }
+
+    @Provides
     fun configurationDataRepository(configurationRepository: ConfigurationRepository)
             : ConfigurationDataRepository = configurationRepository
 
@@ -93,12 +106,10 @@ class ApplicationModule {
             : ElasticsearchDataRepository = elasticsearchRepository
 
     @Provides
-    @Singleton
     fun timestampDataRepository(timestampRepository: TimestampRepository)
             : TimestampDataRepository = timestampRepository
 
     @Provides
-    @Singleton
     fun fileDataRepository(fileRepository: FileRepository)
             : FileDataRepository = fileRepository
 }
