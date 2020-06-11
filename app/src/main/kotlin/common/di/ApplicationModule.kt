@@ -81,17 +81,6 @@ class ApplicationModule {
         retrofit.create(ElasticsearchRemoteDataSource::class.java)
 
     @Provides
-    fun sqlConnection(): Connection {
-        val connection = DriverManager.getConnection("jdbc:sqlite:C:/ots/test5.db")
-        val statement = connection.createStatement()
-        statement.queryTimeout = 10
-        statement.executeUpdate(TableAttestation.CREATE_TABLE)
-        statement.executeUpdate(TableBlockchainPublication.CREATE_TABLE)
-        statement.close()
-        return connection
-    }
-
-    @Provides
     fun configurationDataRepository(configurationRepository: ConfigurationRepository)
             : ConfigurationDataRepository = configurationRepository
 

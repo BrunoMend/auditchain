@@ -1,52 +1,40 @@
 package data.database
 
 import data.SemaphoreDataSource
-import data.database.infrastructure.TableAttestation
-import data.database.infrastructure.TableBlockchainPublication
+import data.database.infrastructure.*
 import data.database.model.AttestationDM
 import data.database.model.BlockchainPublicationDM
 import domain.di.IOScheduler
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
-import java.sql.Connection
 import java.sql.ResultSet
 import javax.inject.Inject
 
 class AttestationDatabaseDataSource @Inject constructor(
     @IOScheduler private val ioScheduler: Scheduler,
-    private val sqlConnection: Connection
-): SemaphoreDataSource() {
+    private val database: Database
+) : SemaphoreDataSource() {
     fun insertAttestation(attestationDM: AttestationDM): Single<Int> =
-        Single.fromCallable {
-            val insertStatement = sqlConnection.prepareStatement(
-                "INSERT INTO ${TableAttestation.TABLE_NAME} " +
-                        "(${TableAttestation.DATE_START}, " +
-                        "${TableAttestation.DATE_END}, " +
-                        "${TableAttestation.SOURCE}, " +
-                        "${TableAttestation.OTS_DATA}, " +
-                        "${TableAttestation.DATE_TIMESTAMP}) " +
-                        "VALUES (${attestationDM.dateStart}, " +
-                        "${attestationDM.dateEnd}, " +
-                        "'${attestationDM.source}', " +
-                        "?, " +
-                        "${attestationDM.dateTimestamp})"
-            )
-            insertStatement.setBytes(1, attestationDM.otsData)
-            insertStatement.execute()
-            insertStatement.close()
-            val getRowIdStatement = sqlConnection.createStatement()
-            val resultSet = getRowIdStatement.executeQuery("SELECT last_insert_rowid()")
-            resultSet.next()
-            val rowId = resultSet.getInt(1)
-            resultSet.close()
-            getRowIdStatement.close()
-            rowId
-        }.subscribeOn(ioScheduler).synchronize()
+        database.insert(
+            "INSERT INTO ${TableAttestation.TABLE_NAME} " +
+                    "(${TableAttestation.DATE_START}, " +
+                    "${TableAttestation.DATE_END}, " +
+                    "${TableAttestation.SOURCE}, " +
+                    "${TableAttestation.OTS_DATA}, " +
+                    "${TableAttestation.DATE_TIMESTAMP}) " +
+                    "VALUES (${attestationDM.dateStart}, " +
+                    "${attestationDM.dateEnd}, " +
+                    "'${attestationDM.source}', " +
+                    "?, " +
+                    "${attestationDM.dateTimestamp})",
+            attestationDM.otsData
+        ).subscribeOn(ioScheduler).synchronize()
 
     //TODO insert several blockchainPublication at one time
     fun insertBlockchainPublication(blockchainPublicationDM: BlockchainPublicationDM): Completable =
         Completable.fromAction {
+            val sqlConnection = database.newConnection()
             val statement = sqlConnection.prepareStatement(
                 "INSERT INTO ${TableBlockchainPublication.TABLE_NAME} " +
                         "(${TableBlockchainPublication.FK_ATTESTATION_ID}, " +
@@ -63,6 +51,7 @@ class AttestationDatabaseDataSource @Inject constructor(
 
     fun getAttestations(): Single<List<AttestationDM>> =
         Single.fromCallable {
+            val sqlConnection = database.newConnection()
             val result = mutableListOf<AttestationDM>()
             val resultSet: ResultSet =
                 sqlConnection.createStatement().executeQuery("SELECT * FROM ${TableAttestation.TABLE_NAME}")
@@ -83,6 +72,7 @@ class AttestationDatabaseDataSource @Inject constructor(
 
     fun getBlockchainValidation(): Single<List<BlockchainPublicationDM>> =
         Single.fromCallable {
+            val sqlConnection = database.newConnection()
             val result = mutableListOf<BlockchainPublicationDM>()
             val resultSet: ResultSet =
                 sqlConnection.createStatement().executeQuery("SELECT * FROM ${TableBlockchainPublication.TABLE_NAME}")
