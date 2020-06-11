@@ -1,25 +1,21 @@
 package commands
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.option
+import domain.exception.NoDataToStampException
 import domain.model.AttestationConfiguration
-import domain.usecase.GetElasticsearchData
 import domain.usecase.GetTimeIntervals
-import domain.usecase.StampData
-import domain.utility.getNextTimeInterval
-import domain.utility.getPreviousTimeInterval
-import domain.utility.toDateFormat
-import domain.utility.toDateMillis
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
+import domain.usecase.StampElasticsearchData
+import domain.utility.*
 import java.text.ParseException
 import javax.inject.Inject
 
 class StampElasticsearchCommand @Inject constructor(
     private val getTimeIntervals: GetTimeIntervals,
-    private val getElasticsearchData: GetElasticsearchData,
-    private val stampData: StampData,
+    private val stampElasticsearchData: StampElasticsearchData,
     attestationConfiguration: AttestationConfiguration
 ) : CliktCommand() {
 
@@ -27,46 +23,60 @@ class StampElasticsearchCommand @Inject constructor(
             by option(help = "Start moment to realize stamps")
                 .convert("LONG") {
                     try {
-                        it.toDateMillis("yyyy-MM-dd HH:mm")
+                        getPreviousTimeInterval(
+                            it.toDateMillis(UI_DATE_FORMAT),
+                            attestationConfiguration.frequencyMillis,
+                            false
+                        )
                     } catch (e: ParseException) {
-                        fail("Date must be yyyy-MM-dd HH:mm")
+                        fail("Date must be $UI_DATE_FORMAT")
                     }
                 }.default(getPreviousTimeInterval(System.currentTimeMillis(), attestationConfiguration.frequencyMillis))
 
+    //TODO validate if it is greater than start date
     private val finishIn: Long
             by option(help = "Finish moment to realize stamps")
                 .convert("LONG") {
                     try {
-                        it.toDateMillis("yyyy-MM-dd HH:mm")
+                        getNextTimeInterval(
+                            it.toDateMillis(UI_DATE_FORMAT),
+                            attestationConfiguration.frequencyMillis,
+                            false
+                        )
                     } catch (e: ParseException) {
-                        fail("Date must be yyyy-MM-dd HH:mm")
+                        fail("Date must be $UI_DATE_FORMAT")
                     }
                 }.default(getNextTimeInterval(System.currentTimeMillis(), attestationConfiguration.frequencyMillis))
 
     private val verbose
             by option("-v", "--verbose").flag()
 
-    //TODO logs in a file
     override fun run() {
-        println("startAt: ${startAt.toDateFormat("yyyy-MM-dd HH:mm:ss")} - finishIn: ${finishIn.toDateFormat("yyyy-MM-dd HH:mm:ss")}")
-        getTimeIntervals
-            .getSingle(startAt, finishIn)
-            .flatMapObservable { Observable.fromIterable(it) }
-            .flatMapSingle {
-                if (verbose) println("${it.startAt.toDateFormat("yyyy-MM-dd HH:mm:ss")} - ${it.finishIn.toDateFormat("yyyy-MM-dd HH:mm:ss")}")
-                Single.just(it)
-            }
-            .flatMapSingle { getElasticsearchData.getSingle(it) }
-            .flatMapCompletable {
-                if (it.first.isNotEmpty()) {
-                    if (verbose) println("Stamping: \n ${it.first} \n File proof: ${it.second}")
-                    stampData.getCompletable(it.first.toByteArray(), it.second)
-                } else {
-                    if (verbose) println("No data to stamp")
-                    Completable.complete()
+        if (verbose) println(
+            "Stamping data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
+                    " to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
+        )
+        getTimeIntervals.getSingle(startAt, finishIn)
+            .flatMapObservable { stampElasticsearchData.getObservable(it) }
+            .blockingSubscribe(
+                { attestation ->
+                    if (verbose) {
+                        println(
+                            "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
+                                    attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
+                        )
+                        println(
+                            "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
+                                    "ots proof: ${attestation.otsData}"
+                        )
+                    }
+                },
+                { error ->
+                    when (error) {
+                        is NoDataToStampException -> if (verbose) println("No data to stamp")
+                        else -> println("${error::class.qualifiedName}: ${error.message}")
+                    }
                 }
-            }
-            .onErrorReturn { Completable.complete() }
-            .blockingSubscribe()
+            )
     }
 }

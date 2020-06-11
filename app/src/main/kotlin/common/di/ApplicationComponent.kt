@@ -2,10 +2,7 @@ package common.di
 
 import commands.ApplicationCommand
 import dagger.Component
-import domain.datarepository.ConfigurationDataRepository
-import domain.datarepository.ElasticsearchDataRepository
-import domain.datarepository.FileDataRepository
-import domain.datarepository.TimestampDataRepository
+import domain.datarepository.*
 import domain.di.ComputationScheduler
 import domain.di.IOScheduler
 import domain.utility.Logger
@@ -24,5 +21,6 @@ interface ApplicationComponent {
     fun configurationRepository(): ConfigurationDataRepository
     fun timestampRepository(): TimestampDataRepository
     fun fileRepository(): FileDataRepository
+    fun attestationRepository(): AttestationDataRepository
     fun inject(applicationCommand: ApplicationCommand)
 }

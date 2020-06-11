@@ -1,20 +1,20 @@
 package domain.usecase
 
-import domain.datarepository.ElasticsearchDataRepository
+import domain.datarepository.AttestationDataRepository
 import domain.di.IOScheduler
-import domain.model.TimeInterval
+import domain.model.Attestation
 import domain.utility.Logger
+import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
-import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
-class GetElasticsearchData @Inject constructor(
-    private val elasticsearchDataRepository: ElasticsearchDataRepository,
+class SaveAttestation @Inject constructor(
+    private val attestationDataRepository: AttestationDataRepository,
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
-    fun getSingle(timeInterval: TimeInterval): Single<ByteArray> =
-        elasticsearchDataRepository.getData(timeInterval)
+    fun getCompletable(attestation: Attestation): Completable =
+        attestationDataRepository.saveAttestation(attestation)
             .doOnError {
                 logger.log("Error on ${this::class.qualifiedName}: $it")
             }.subscribeOn(executorScheduler)

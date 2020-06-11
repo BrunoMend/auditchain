@@ -6,14 +6,8 @@ import data.database.infrastructure.TableAttestation
 import data.database.infrastructure.TableBlockchainPublication
 import data.remote.ElasticsearchRemoteDataSource
 import data.remote.infrastructure.BasicAuthInterceptor
-import data.repository.ConfigurationRepository
-import data.repository.ElasticsearchRepository
-import data.repository.FileRepository
-import data.repository.TimestampRepository
-import domain.datarepository.ConfigurationDataRepository
-import domain.datarepository.ElasticsearchDataRepository
-import domain.datarepository.FileDataRepository
-import domain.datarepository.TimestampDataRepository
+import data.repository.*
+import domain.datarepository.*
 import domain.di.ComputationScheduler
 import domain.di.IOScheduler
 import domain.model.AttestationConfiguration
@@ -88,7 +82,7 @@ class ApplicationModule {
 
     @Provides
     fun sqlConnection(): Connection {
-        val connection = DriverManager.getConnection("jdbc:sqlite:C:/ots/test3.db")
+        val connection = DriverManager.getConnection("jdbc:sqlite:C:/ots/test5.db")
         val statement = connection.createStatement()
         statement.queryTimeout = 10
         statement.executeUpdate(TableAttestation.CREATE_TABLE)
@@ -112,4 +106,8 @@ class ApplicationModule {
     @Provides
     fun fileDataRepository(fileRepository: FileRepository)
             : FileDataRepository = fileRepository
+
+    @Provides
+    fun attestationDataRepository(attestationRepository: AttestationRepository)
+            : AttestationDataRepository = attestationRepository
 }
