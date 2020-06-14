@@ -4,30 +4,38 @@ import domain.datarepository.ConfigurationDataRepository
 import domain.di.ComputationScheduler
 import domain.model.AttestationConfiguration
 import domain.model.TimeInterval
-import domain.utility.minuteInDay
-import domain.utility.minuteInDayToDateMillis
-import domain.utility.secondInDay
+import domain.utility.*
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+@Deprecated("If not used soon it will be deleted")
 class GetTimerNotifier @Inject constructor(
-    private val configurationDataRepository: ConfigurationDataRepository,
+    private val attestationConfiguration: AttestationConfiguration,
     @ComputationScheduler private val executorScheduler: Scheduler
 ) {
+    private val ZonedDateTime.minuteInDay: Long
+        get() = minute + (hour * 60L)
+
+    private val ZonedDateTime.secondInDay: Long
+        get() = (minute + (hour * 60L)) * 60L + second
+
+    private fun ZonedDateTime.minuteInDayToDateMillis(minutes: Long): Long =
+        this.toLocalDateTime()
+            .minusMinutes(minuteInDay)
+            .minusSeconds(second.toLong())
+            .plusMinutes(minutes)
+            .format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT))
+            .toDateMillis()
 
     private val timerSubject: PublishSubject<TimeInterval> = PublishSubject.create()
     fun getObservable(): Observable<TimeInterval> = timerSubject
-
-    //TODO remove blockingGet
-    private val attestationConfiguration: AttestationConfiguration by lazy {
-        configurationDataRepository.getAttestationConfiguration().blockingGet()
-    }
 
     init {
         nextNotify()
