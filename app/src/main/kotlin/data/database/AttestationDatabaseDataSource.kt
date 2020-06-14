@@ -1,20 +1,22 @@
 package data.database
 
 import data.SemaphoreDataSource
-import data.database.infrastructure.*
+import data.database.infrastructure.Database
+import data.database.infrastructure.TableAttestation
+import data.database.infrastructure.TableBlockchainPublication
 import data.database.model.AttestationDM
 import data.database.model.BlockchainPublicationDM
 import domain.di.IOScheduler
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
-import java.sql.ResultSet
 import javax.inject.Inject
 
 class AttestationDatabaseDataSource @Inject constructor(
     @IOScheduler private val ioScheduler: Scheduler,
     private val database: Database
 ) : SemaphoreDataSource() {
+
     fun insertAttestation(attestationDM: AttestationDM): Single<Int> =
         database.insert(
             "INSERT INTO ${TableAttestation.TABLE_NAME} " +
@@ -29,64 +31,50 @@ class AttestationDatabaseDataSource @Inject constructor(
                     "?, " +
                     "${attestationDM.dateTimestamp})",
             attestationDM.otsData
-        ).subscribeOn(ioScheduler).synchronize()
+        ).andThen(database.getLastInsertedRowId())
+            .subscribeOn(ioScheduler)
+            .synchronize()
 
     //TODO insert several blockchainPublication at one time
     fun insertBlockchainPublication(blockchainPublicationDM: BlockchainPublicationDM): Completable =
-        Completable.fromAction {
-            val sqlConnection = database.newConnection()
-            val statement = sqlConnection.prepareStatement(
-                "INSERT INTO ${TableBlockchainPublication.TABLE_NAME} " +
-                        "(${TableBlockchainPublication.FK_ATTESTATION_ID}, " +
-                        "${TableBlockchainPublication.BLOCKCHAIN}, " +
-                        "${TableBlockchainPublication.BLOCK_ID}, " +
-                        "${TableBlockchainPublication.TIMESTAMP}) " +
-                        "VALUES (${blockchainPublicationDM.attestationId}, " +
-                        "'${blockchainPublicationDM.blockchain}', " +
-                        "'${blockchainPublicationDM.blockId}', " +
-                        "${blockchainPublicationDM.timestamp})"
-            )
-            statement.execute()
-        }.subscribeOn(ioScheduler)
+        database.insert(
+            "INSERT INTO ${TableBlockchainPublication.TABLE_NAME} " +
+                    "(${TableBlockchainPublication.FK_ATTESTATION_ID}, " +
+                    "${TableBlockchainPublication.BLOCKCHAIN}, " +
+                    "${TableBlockchainPublication.BLOCK_ID}, " +
+                    "${TableBlockchainPublication.TIMESTAMP}) " +
+                    "VALUES (${blockchainPublicationDM.attestationId}, " +
+                    "'${blockchainPublicationDM.blockchain}', " +
+                    "'${blockchainPublicationDM.blockId}', " +
+                    "${blockchainPublicationDM.timestamp})"
+        ).subscribeOn(ioScheduler)
 
     fun getAttestations(): Single<List<AttestationDM>> =
-        Single.fromCallable {
-            val sqlConnection = database.newConnection()
-            val result = mutableListOf<AttestationDM>()
-            val resultSet: ResultSet =
-                sqlConnection.createStatement().executeQuery("SELECT * FROM ${TableAttestation.TABLE_NAME}")
-            while (resultSet.next()) {
-                result.add(
+        database.select("SELECT * FROM ${TableAttestation.TABLE_NAME}")
+            .map {
+                it.map { resultList ->
                     AttestationDM(
-                        resultSet.getInt(TableAttestation.ID),
-                        resultSet.getLong(TableAttestation.DATE_START),
-                        resultSet.getLong(TableAttestation.DATE_END),
-                        resultSet.getString(TableAttestation.SOURCE),
-                        resultSet.getBytes(TableAttestation.OTS_DATA),
-                        resultSet.getLong(TableAttestation.DATE_TIMESTAMP)
+                        resultList[TableAttestation.ID] as Int,
+                        resultList[TableAttestation.DATE_START] as Long,
+                        resultList[TableAttestation.DATE_END] as Long,
+                        resultList[TableAttestation.SOURCE] as String,
+                        resultList[TableAttestation.DATE_TIMESTAMP] as Long,
+                        resultList[TableAttestation.OTS_DATA] as ByteArray
                     )
-                )
-            }
-            result as List<AttestationDM>
-        }.subscribeOn(ioScheduler)
+                }
+            }.subscribeOn(ioScheduler)
 
-    fun getBlockchainValidation(): Single<List<BlockchainPublicationDM>> =
-        Single.fromCallable {
-            val sqlConnection = database.newConnection()
-            val result = mutableListOf<BlockchainPublicationDM>()
-            val resultSet: ResultSet =
-                sqlConnection.createStatement().executeQuery("SELECT * FROM ${TableBlockchainPublication.TABLE_NAME}")
-            while (resultSet.next()) {
-                result.add(
+    fun getBlockchainValidations(): Single<List<BlockchainPublicationDM>> =
+        database.select("SELECT * FROM ${TableBlockchainPublication.TABLE_NAME}")
+            .map {
+                it.map { resultList ->
                     BlockchainPublicationDM(
-                        resultSet.getInt(TableBlockchainPublication.ID),
-                        resultSet.getInt(TableBlockchainPublication.FK_ATTESTATION_ID),
-                        resultSet.getString(TableBlockchainPublication.BLOCKCHAIN),
-                        resultSet.getString(TableBlockchainPublication.BLOCK_ID),
-                        resultSet.getLong(TableBlockchainPublication.TIMESTAMP)
+                        resultList[TableBlockchainPublication.ID] as Int,
+                        resultList[TableBlockchainPublication.FK_ATTESTATION_ID] as Int,
+                        resultList[TableBlockchainPublication.BLOCKCHAIN] as String,
+                        resultList[TableBlockchainPublication.BLOCK_ID] as String,
+                        resultList[TableBlockchainPublication.TIMESTAMP] as Long
                     )
-                )
-            }
-            result as List<BlockchainPublicationDM>
-        }.subscribeOn(ioScheduler)
+                }
+            }.subscribeOn(ioScheduler)
 }

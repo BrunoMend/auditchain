@@ -1,6 +1,7 @@
 package data
 
 import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import java.util.concurrent.Semaphore
 
@@ -14,7 +15,14 @@ abstract class SemaphoreDataSource {
             semaphore.release()
         }
 
-    fun Single<Int>.synchronize(): Single<Int> =
+    fun <T> Single<T>.synchronize(): Single<T> =
+        this.doOnSubscribe {
+            semaphore.acquire()
+        }.doFinally {
+            semaphore.release()
+        }
+
+    fun <T> Observable<T>.synchronize(): Observable<T> =
         this.doOnSubscribe {
             semaphore.acquire()
         }.doFinally {

@@ -5,6 +5,6 @@ data class AttestationDM(
     val dateStart: Long,
     val dateEnd: Long,
     val source: String,
-    val otsData: ByteArray,
-    val dateTimestamp: Long
+    val dateTimestamp: Long,
+    val otsData: ByteArray
 )

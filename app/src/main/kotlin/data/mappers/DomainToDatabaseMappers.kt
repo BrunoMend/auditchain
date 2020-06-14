@@ -11,8 +11,8 @@ fun Attestation.toDatabaseModel() =
         timeInterval.startAt,
         timeInterval.finishIn,
         source.toDatabaseModel(),
-        otsData,
-        dateTimestamp
+        dateTimestamp,
+        otsData
     )
 
 fun Source.toDatabaseModel() =

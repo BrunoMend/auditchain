@@ -2,7 +2,9 @@ package data.database.infrastructure
 
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
-import java.sql.*
+import java.sql.Connection
+import java.sql.DriverManager
+import java.util.*
 import javax.inject.Inject
 
 class Database @Inject constructor() {
@@ -22,30 +24,32 @@ class Database @Inject constructor() {
         }
     }
 
-    fun newConnection(): Connection =
+    private fun newConnection(): Connection =
         DriverManager.getConnection("jdbc:sqlite:C:/ots/test5.db")
 
-    fun insert(query: String, bytesValue: ByteArray? = null): Single<Int> {
-        val sqlConnection = newConnection()
-        return Completable.fromAction {
+    fun getLastInsertedRowId(): Single<Int> =
+        select("SELECT last_insert_rowid()")
+            .map { it.first().toList().first().second as Int }
+
+    fun insert(query: String, bytesValue: ByteArray? = null): Completable =
+        Completable.fromAction {
+            val sqlConnection = newConnection()
             sqlConnection
                 .newPreparedStatement(query, bytesValue)
                 .update()
                 .safeClose()
-        }.andThen(getLastInsertedRowId(sqlConnection))
-            .doFinally { sqlConnection.safeClose() }
-    }
+            sqlConnection.safeClose()
+        }
 
-    private fun getLastInsertedRowId(connection: Connection? = null): Single<Int> =
+    fun select(query: String): Single<List<HashMap<String, Any>>> =
         Single.fromCallable {
-            val sqlConnection = connection ?: newConnection()
-            val getRowIdStatement = sqlConnection.createStatement()
-            val resultSet = getRowIdStatement.executeQuery("SELECT last_insert_rowid()")
-            resultSet.next()
-            val rowId = resultSet.getInt(1)
+            val sqlConnection = newConnection()
+            val statement = sqlConnection.newStatement()
+            val resultSet = statement.executeQuery(query)
+            val resultList = resultSet.toList()
             resultSet.safeClose()
-            getRowIdStatement.safeClose()
-            if (connection == null) sqlConnection.safeClose()
-            rowId
+            statement.safeClose()
+            sqlConnection.safeClose()
+            resultList
         }
 }

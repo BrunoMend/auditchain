@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import domain.exception.NoDataToStampException
+import domain.exception.NoDataException
 import domain.model.AttestationConfiguration
 import domain.usecase.GetTimeIntervals
 import domain.usecase.StampElasticsearchData
@@ -60,20 +60,19 @@ class StampElasticsearchCommand @Inject constructor(
             .flatMapObservable { stampElasticsearchData.getObservable(it) }
             .blockingSubscribe(
                 { attestation ->
-                    if (verbose) {
-                        println(
-                            "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                                    attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
-                        )
-                        println(
-                            "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
-                                    "ots proof: ${attestation.otsData}"
-                        )
-                    }
+                    if (verbose) println(
+                        "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
+                                "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
+                                "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
+                                "ots proof: ${attestation.otsData}"
+                    )
                 },
                 { error ->
                     when (error) {
-                        is NoDataToStampException -> if (verbose) println("No data to stamp")
+                        is NoDataException -> if (verbose) println(
+                            "No data to stamp at ${error.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
+                                    error.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
+                        )
                         else -> println("${error::class.qualifiedName}: ${error.message}")
                     }
                 }

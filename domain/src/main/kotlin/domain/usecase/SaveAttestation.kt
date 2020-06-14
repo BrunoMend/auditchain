@@ -8,6 +8,7 @@ import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import javax.inject.Inject
 
+@Deprecated("Used directly in repositories")
 class SaveAttestation @Inject constructor(
     private val attestationDataRepository: AttestationDataRepository,
     @IOScheduler private val executorScheduler: Scheduler,
