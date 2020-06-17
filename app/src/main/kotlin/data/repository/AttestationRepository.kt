@@ -17,9 +17,6 @@ class AttestationRepository @Inject constructor(
 
     override fun saveAttestation(attestation: Attestation): Completable =
         attestationDatabaseDataSource.insertAttestation(attestation.toDatabaseModel())
-            .flatMapCompletable {
-                Completable.fromAction { println("new row id: $it") }
-            }
 
     override fun getAttestation(timeInterval: TimeInterval, source: Source): Single<Attestation> =
         attestationDatabaseDataSource.getAttestations().map {

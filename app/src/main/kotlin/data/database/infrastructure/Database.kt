@@ -25,7 +25,7 @@ class Database @Inject constructor() {
     }
 
     private fun newConnection(): Connection =
-        DriverManager.getConnection("jdbc:sqlite:C:/ots/test5.db")
+        DriverManager.getConnection(DATABASE_URL)
 
     fun getLastInsertedRowId(): Single<Int> =
         select("SELECT last_insert_rowid()")

@@ -1,5 +1,7 @@
 package data.database.infrastructure
 
+const val DATABASE_URL = "jdbc:sqlite:C:/ots/test6.db"
+
 object TableAttestation {
     const val TABLE_NAME = "attestation"
 
@@ -21,6 +23,7 @@ object TableAttestation {
                 "$SOURCE VARCHAR(10) CHECK( $SOURCE IN ('$SOURCE_ELASTICSEARCH', '$SOURCE_POSTEGRES') ) NOT NULL, " +
                 "$OTS_DATA BLOB NOT NULL, " +
                 "$DATE_TIMESTAMP LONG NOT NULL, " +
+                "UNIQUE ($DATE_START, $DATE_END, $SOURCE) " +
                 "PRIMARY KEY ($ID));"
 }
 
@@ -31,7 +34,7 @@ object TableBlockchainPublication {
     const val FK_ATTESTATION_ID = "attestation_id"
     const val BLOCKCHAIN = "blockchain"
     const val BLOCK_ID = "block_id"
-    const val TIMESTAMP = "timestamp"
+    const val DATE_PUBLICATION = "date_publication"
 
     const val BLOCKCHAIN_BITCOIN = "BTC"
     const val BLOCKCHAIN_ETHEREUM = "ETH"
@@ -43,7 +46,8 @@ object TableBlockchainPublication {
                 "$FK_ATTESTATION_ID INTEGER NOT NULL, " +
                 "$BLOCKCHAIN VARCHAR(10) CHECK( $BLOCKCHAIN IN ('$BLOCKCHAIN_BITCOIN', '$BLOCKCHAIN_ETHEREUM', '$BLOCKCHAIN_LITECOIN') ), " +
                 "$BLOCK_ID TEXT NOT NULL, " +
-                "$TIMESTAMP LONG NOT NULL, " +
+                "$DATE_PUBLICATION LONG NOT NULL, " +
+                "UNIQUE ($FK_ATTESTATION_ID, $BLOCKCHAIN) " +
                 "PRIMARY KEY (${ID}) " +
                 "FOREIGN KEY ($FK_ATTESTATION_ID) " +
                 "    REFERENCES ${TableAttestation.TABLE_NAME} (${TableAttestation.ID}) " +

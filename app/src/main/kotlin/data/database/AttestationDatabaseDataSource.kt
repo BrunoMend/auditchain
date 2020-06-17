@@ -17,9 +17,13 @@ class AttestationDatabaseDataSource @Inject constructor(
     private val database: Database
 ) : SemaphoreDataSource() {
 
-    fun insertAttestation(attestationDM: AttestationDM): Single<Int> =
+    //TODO
+    // get attestation id from source and time interval passed
+    // if have no data, insert attestation
+    // else upinsert blockchain publications
+    fun insertAttestation(attestationDM: AttestationDM): Completable =
         database.insert(
-            "INSERT INTO ${TableAttestation.TABLE_NAME} " +
+            "INSERT OR IGNORE INTO ${TableAttestation.TABLE_NAME} " +
                     "(${TableAttestation.DATE_START}, " +
                     "${TableAttestation.DATE_END}, " +
                     "${TableAttestation.SOURCE}, " +
@@ -32,21 +36,32 @@ class AttestationDatabaseDataSource @Inject constructor(
                     "${attestationDM.dateTimestamp})",
             attestationDM.otsData
         ).andThen(database.getLastInsertedRowId())
+            .flatMapCompletable { attestationId ->
+                attestationDM.blockchainPublications?.let {
+                    insertBlockchainPublications(it, attestationId)
+                } ?: Completable.complete()
+            }
             .subscribeOn(ioScheduler)
             .synchronize()
 
-    //TODO insert several blockchainPublication at one time
-    fun insertBlockchainPublication(blockchainPublicationDM: BlockchainPublicationDM): Completable =
+    private fun insertBlockchainPublications(
+        blockchainPublications: List<BlockchainPublicationDM>,
+        attestationId: Int
+    ): Completable =
         database.insert(
-            "INSERT INTO ${TableBlockchainPublication.TABLE_NAME} " +
+            "INSERT OR IGNORE INTO ${TableBlockchainPublication.TABLE_NAME} " +
                     "(${TableBlockchainPublication.FK_ATTESTATION_ID}, " +
                     "${TableBlockchainPublication.BLOCKCHAIN}, " +
                     "${TableBlockchainPublication.BLOCK_ID}, " +
-                    "${TableBlockchainPublication.TIMESTAMP}) " +
-                    "VALUES (${blockchainPublicationDM.attestationId}, " +
-                    "'${blockchainPublicationDM.blockchain}', " +
-                    "'${blockchainPublicationDM.blockId}', " +
-                    "${blockchainPublicationDM.timestamp})"
+                    "${TableBlockchainPublication.DATE_PUBLICATION}) " +
+                    "VALUES " +
+                    blockchainPublications.forEachIndexed { index, blockchainPublication ->
+                        "($attestationId, " +
+                                "'${blockchainPublication.blockchain}', " +
+                                "'${blockchainPublication.blockId}', " +
+                                "${blockchainPublication.datePublication})" +
+                                if (index != blockchainPublications.lastIndex) ", " else ""
+                    }
         ).subscribeOn(ioScheduler)
 
     fun getAttestations(): Single<List<AttestationDM>> =
@@ -54,12 +69,12 @@ class AttestationDatabaseDataSource @Inject constructor(
             .map {
                 it.map { resultList ->
                     AttestationDM(
-                        resultList[TableAttestation.ID] as Int,
                         resultList[TableAttestation.DATE_START] as Long,
                         resultList[TableAttestation.DATE_END] as Long,
                         resultList[TableAttestation.SOURCE] as String,
                         resultList[TableAttestation.DATE_TIMESTAMP] as Long,
-                        resultList[TableAttestation.OTS_DATA] as ByteArray
+                        resultList[TableAttestation.OTS_DATA] as ByteArray,
+                        resultList[TableAttestation.ID] as Int
                     )
                 }
             }.subscribeOn(ioScheduler)
@@ -69,11 +84,11 @@ class AttestationDatabaseDataSource @Inject constructor(
             .map {
                 it.map { resultList ->
                     BlockchainPublicationDM(
-                        resultList[TableBlockchainPublication.ID] as Int,
-                        resultList[TableBlockchainPublication.FK_ATTESTATION_ID] as Int,
                         resultList[TableBlockchainPublication.BLOCKCHAIN] as String,
                         resultList[TableBlockchainPublication.BLOCK_ID] as String,
-                        resultList[TableBlockchainPublication.TIMESTAMP] as Long
+                        resultList[TableBlockchainPublication.DATE_PUBLICATION] as Long,
+                        resultList[TableBlockchainPublication.ID] as Int,
+                        resultList[TableBlockchainPublication.FK_ATTESTATION_ID] as Int
                     )
                 }
             }.subscribeOn(ioScheduler)
