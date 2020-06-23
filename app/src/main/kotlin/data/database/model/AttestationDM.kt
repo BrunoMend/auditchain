@@ -6,6 +6,5 @@ data class AttestationDM(
     val source: String,
     val dateTimestamp: Long,
     val otsData: ByteArray,
-    val id: Int? = null,
-    val blockchainPublications: List<BlockchainPublicationDM>? = null
+    var isOtsUpdated: Boolean = false
 )

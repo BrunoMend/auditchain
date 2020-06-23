@@ -2,8 +2,6 @@ package common.di
 
 import dagger.Module
 import dagger.Provides
-import data.database.infrastructure.TableAttestation
-import data.database.infrastructure.TableBlockchainPublication
 import data.remote.ElasticsearchRemoteDataSource
 import data.remote.infrastructure.BasicAuthInterceptor
 import data.repository.*
@@ -19,8 +17,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import java.sql.Connection
-import java.sql.DriverManager
 import javax.inject.Singleton
 
 @Module

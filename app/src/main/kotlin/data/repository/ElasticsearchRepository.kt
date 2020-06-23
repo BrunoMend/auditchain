@@ -35,29 +35,30 @@ class ElasticsearchRepository @Inject constructor(
             }
 
     override fun verifyElasticsearchData(intervals: List<TimeInterval>): Completable =
-        attestationDataRepository.getAttestation(intervals.first(), Source.ELASTICSEARCH)
-            .flatMapCompletable {
-                println("Attestation: \n" +
-                        "${it.timeInterval.startAt}, " +
-                        "${it.timeInterval.finishIn}, " +
-                        "${it.source}, " +
-                        "${it.dateTimestamp}, " +
-                        "${it.otsData}")
-                Completable.complete()
-            }
-    
+        Observable.fromIterable(intervals)
+            .flatMapCompletable { interval ->
+                attestationDataRepository.getAttestation(interval, Source.ELASTICSEARCH)
+                    .flatMapCompletable { attestation ->
+                        getElasticsearchData(interval)
+                            .flatMapCompletable { originalData ->
+                                timestampRepository.verifyStamp(originalData, attestation.otsData)
+                                    .flatMapCompletable { Completable.complete() }
+                            }.onErrorComplete()
+                    }.onErrorComplete()
+            }.onErrorComplete()
+
     override fun stampElasticsearchData(intervals: List<TimeInterval>): Observable<Attestation> =
-            Observable.fromIterable(intervals)
-                .flatMap { timeInterval ->
-                    getElasticsearchData(timeInterval)
-                        .flatMapObservable { data ->
-                            timestampRepository.stampData(data)
-                                .flatMapObservable { otsData ->
-                                    val attestation =
-                                        Attestation(timeInterval, Source.ELASTICSEARCH, Date().time, otsData)
-                                    attestationDataRepository.saveAttestation(attestation)
-                                        .andThen (Observable.just(attestation))
-                                }.onErrorComplete()
-                        }.onErrorComplete()
-                }.onErrorComplete()
+        Observable.fromIterable(intervals)
+            .flatMap { timeInterval ->
+                getElasticsearchData(timeInterval)
+                    .flatMapObservable { data ->
+                        timestampRepository.stampData(data)
+                            .flatMapObservable { otsData ->
+                                val attestation =
+                                    Attestation(timeInterval, Source.ELASTICSEARCH, Date().time, otsData)
+                                attestationDataRepository.saveAttestation(attestation)
+                                    .andThen(Observable.just(attestation))
+                            }.onErrorComplete()
+                    }.onErrorComplete()
+            }.onErrorComplete()
 }
