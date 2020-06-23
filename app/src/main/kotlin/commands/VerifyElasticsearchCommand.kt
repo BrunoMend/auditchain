@@ -32,16 +32,17 @@ class VerifyElasticsearchCommand @Inject constructor(
                     }
                 }.default(getPreviousTimeInterval(System.currentTimeMillis(), attestationConfiguration.frequencyMillis))
 
-    //TODO validate if it is greater than start date
     private val finishIn: Long
             by option(help = "Finish moment to verify stamps")
                 .convert("LONG") {
                     try {
-                        getNextTimeInterval(
+                        val result = getNextTimeInterval(
                             it.toDateMillis(UI_DATE_FORMAT),
                             attestationConfiguration.frequencyMillis,
                             false
                         )
+                        if(startAt > result) fail("Finish date must be greater than start date")
+                        else result
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
                     }
