@@ -4,6 +4,7 @@ import data.remote.ElasticsearchRemoteDataSource
 import domain.datarepository.AttestationDataRepository
 import domain.datarepository.ElasticsearchDataRepository
 import domain.exception.NoDataException
+import domain.exception.NoOtsDataException
 import domain.model.Attestation
 import domain.model.Source
 import domain.model.TimeInterval
@@ -39,26 +40,29 @@ class ElasticsearchRepository @Inject constructor(
             .flatMapCompletable { interval ->
                 attestationDataRepository.getAttestation(interval, Source.ELASTICSEARCH)
                     .flatMapCompletable { attestation ->
+                        if (attestation.otsData == null) throw NoOtsDataException(interval)
                         getElasticsearchData(interval)
                             .flatMapCompletable { originalData ->
-                                timestampRepository.verifyStamp(originalData, attestation.otsData)
+                                timestampRepository.verifyStamp(originalData, attestation.otsData!!)
                                     .flatMapCompletable { Completable.complete() }
-                            }.onErrorComplete()
-                    }.onErrorComplete()
-            }.onErrorComplete()
+                            }
+                    }
+            }
 
-    override fun stampElasticsearchData(intervals: List<TimeInterval>): Observable<Attestation> =
-        Observable.fromIterable(intervals)
-            .flatMap { timeInterval ->
-                getElasticsearchData(timeInterval)
-                    .flatMapObservable { data ->
-                        timestampRepository.stampData(data)
-                            .flatMapObservable { otsData ->
-                                val attestation =
-                                    Attestation(timeInterval, Source.ELASTICSEARCH, Date().time, otsData)
-                                attestationDataRepository.saveAttestation(attestation)
-                                    .andThen(Observable.just(attestation))
-                            }.onErrorComplete()
-                    }.onErrorComplete()
-            }.onErrorComplete()
+    override fun stampElasticsearchData(timeInterval: TimeInterval): Single<Attestation> =
+        getElasticsearchData(timeInterval)
+            .flatMap { data ->
+                timestampRepository.stampData(data)
+                    .flatMap { otsData ->
+                        val attestation =
+                            Attestation(
+                                timeInterval,
+                                Source.ELASTICSEARCH,
+                                Date().time,
+                                otsData
+                            )
+                        attestationDataRepository.saveAttestation(attestation)
+                            .andThen(Single.just(attestation))
+                    }
+            }
 }

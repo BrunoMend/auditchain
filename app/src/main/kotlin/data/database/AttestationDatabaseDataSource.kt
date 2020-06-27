@@ -3,6 +3,7 @@ package data.database
 import data.SemaphoreDataSource
 import data.database.infrastructure.Database
 import data.database.infrastructure.TableAttestation
+import data.database.infrastructure.boolValue
 import data.database.model.AttestationDM
 import data.mappers.toDatabaseModel
 import domain.di.IOScheduler
@@ -20,17 +21,25 @@ class AttestationDatabaseDataSource @Inject constructor(
 
     fun insertAttestation(attestationDM: AttestationDM): Completable =
         database.upinsert(
-            "INSERT INTO ${TableAttestation.TABLE_NAME} " +
-                    "(${TableAttestation.DATE_START}, " +
+            "INSERT OR IGNORE INTO ${TableAttestation.TABLE_NAME} " +
+                    "( " +
+                    "${TableAttestation.DATE_START}, " +
                     "${TableAttestation.DATE_END}, " +
                     "${TableAttestation.SOURCE}, " +
+                    "${TableAttestation.DATE_TIMESTAMP}, " +
                     "${TableAttestation.OTS_DATA}, " +
-                    "${TableAttestation.DATE_TIMESTAMP}) " +
-                    "VALUES (${attestationDM.dateStart}, " +
+                    "${TableAttestation.IS_OTS_UPDATED}, " +
+                    "${TableAttestation.HAS_NO_DATA} " +
+                    ") " +
+                    "VALUES ( " +
+                    "${attestationDM.dateStart}, " +
                     "${attestationDM.dateEnd}, " +
                     "'${attestationDM.source}', " +
+                    "${attestationDM.dateTimestamp}, " +
                     "?, " +
-                    "${attestationDM.dateTimestamp})",
+                    "${attestationDM.isOtsUpdated.boolValue}, " +
+                    "${attestationDM.hasNoData.boolValue} " +
+                    ")",
             attestationDM.otsData
         ).subscribeOn(ioScheduler)
             .synchronize()
@@ -39,7 +48,7 @@ class AttestationDatabaseDataSource @Inject constructor(
         database.upinsert(
             "UPDATE ${TableAttestation.TABLE_NAME} " +
                     "SET ${TableAttestation.OTS_DATA} = ?, " +
-                    "${TableAttestation.IS_OTS_UPDATED} = ${attestationDM.isOtsUpdated} " +
+                    "${TableAttestation.IS_OTS_UPDATED} = ${attestationDM.isOtsUpdated.boolValue} " +
                     "WHERE ${TableAttestation.DATE_START} = ${attestationDM.dateStart} " +
                     "AND ${TableAttestation.DATE_END} = ${attestationDM.dateEnd} " +
                     "AND ${TableAttestation.SOURCE} = '${attestationDM.source}'",

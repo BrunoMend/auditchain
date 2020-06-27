@@ -7,15 +7,21 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import domain.exception.NoDataException
 import domain.model.AttestationConfiguration
+import domain.model.Source
 import domain.usecase.GetTimeIntervals
+import domain.usecase.SaveEmptyAttestation
 import domain.usecase.StampElasticsearchData
 import domain.utility.*
+import io.reactivex.rxjava3.core.Observable
+import retrofit2.HttpException
+import java.net.UnknownHostException
 import java.text.ParseException
 import javax.inject.Inject
 
 class StampElasticsearchCommand @Inject constructor(
     private val getTimeIntervals: GetTimeIntervals,
     private val stampElasticsearchData: StampElasticsearchData,
+    private val saveEmptyAttestation: SaveEmptyAttestation,
     attestationConfiguration: AttestationConfiguration
 ) : CliktCommand() {
 
@@ -42,7 +48,7 @@ class StampElasticsearchCommand @Inject constructor(
                             attestationConfiguration.frequencyMillis,
                             false
                         )
-                        if(startAt > result) fail("Finish date must be greater than start date")
+                        if (startAt > result) fail("Finish date must be greater than start date")
                         else result
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
@@ -55,28 +61,44 @@ class StampElasticsearchCommand @Inject constructor(
     override fun run() {
         if (verbose) println(
             "Stamping data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
-                    " to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
+                    "to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
         )
         getTimeIntervals.getSingle(startAt, finishIn)
-            .flatMapObservable { stampElasticsearchData.getObservable(it) }
+            .flatMapObservable { Observable.fromIterable(it) }
+            .flatMap { timeInterval ->
+                Observable.just(timeInterval)
+                    .flatMapSingle { stampElasticsearchData.getSingle(timeInterval) }
+                    .onErrorResumeNext { error ->
+                        if (verbose) when (error) {
+                            is NoDataException -> println(
+                                "No data to stamp at ${error.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
+                                        error.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
+                            )
+                            is HttpException -> println(
+                                "Http Exception on get data"
+                            )
+                            is UnknownHostException -> println(
+                                "Fail to get data. Verify your internet connection."
+                            )
+                            else -> println("Unexpected error")
+                        }
+                        saveEmptyAttestation.getCompletable(
+                            timeInterval,
+                            Source.ELASTICSEARCH,
+                            (error is NoDataException)
+                        ).andThen(Observable.empty())
+                    }
+            }
             .blockingSubscribe(
                 { attestation ->
                     if (verbose) println(
                         "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
                                 "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
-                                "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
+                                "Stamped at ${attestation.dateTimestamp?.toDateFormat(UI_DATE_FORMAT)} \n" +
                                 "ots proof: ${attestation.otsData}"
                     )
                 },
-                { error ->
-                    when (error) {
-                        is NoDataException -> if (verbose) println(
-                            "No data to stamp at ${error.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                                    error.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
-                        )
-                        else -> println("${error::class.qualifiedName}: ${error.message}")
-                    }
-                }
+                { error -> println("${error::class.qualifiedName}: ${error.message}") }
             )
     }
 }

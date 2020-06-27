@@ -5,8 +5,8 @@ import domain.di.IOScheduler
 import domain.model.Attestation
 import domain.model.TimeInterval
 import domain.utility.Logger
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Scheduler
+import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class StampElasticsearchData @Inject constructor(
@@ -14,9 +14,9 @@ class StampElasticsearchData @Inject constructor(
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
-    fun getObservable(intervals: List<TimeInterval>): Observable<Attestation> =
+    fun getSingle(timeInterval: TimeInterval): Single<Attestation> =
         elasticsearchDataRepository
-            .stampElasticsearchData(intervals)
+            .stampElasticsearchData(timeInterval)
             .doOnError { logger.log("Error on ${this::class.qualifiedName}: $it") }
             .subscribeOn(executorScheduler)
 }

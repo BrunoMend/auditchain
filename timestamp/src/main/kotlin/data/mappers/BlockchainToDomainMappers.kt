@@ -13,5 +13,5 @@ fun VerifyResult.Chains.toDomain(): Blockchain =
 
 fun HashMap<VerifyResult.Chains, VerifyResult>.toDomain(): List<BlockchainPublication> =
     this.map {
-        BlockchainPublication(it.key.toDomain(), "TODO",it.value.timestamp * 1000) //TODO get block id
+        BlockchainPublication(it.key.toDomain(), it.value.timestamp * 1000)
     }
