@@ -95,4 +95,8 @@ class ApplicationModule {
     @Provides
     fun attestationDataRepository(attestationRepository: AttestationRepository)
             : AttestationDataRepository = attestationRepository
+
+    @Provides
+    fun stampExceptionDataRepository(stampExceptionRepository: StampExceptionRepository)
+            : StampExceptionDataRepository = stampExceptionRepository
 }

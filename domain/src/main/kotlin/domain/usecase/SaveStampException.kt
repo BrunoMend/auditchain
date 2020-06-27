@@ -1,21 +1,20 @@
 package domain.usecase
 
-import domain.datarepository.AttestationDataRepository
+import domain.datarepository.StampExceptionDataRepository
 import domain.di.IOScheduler
-import domain.model.Source
-import domain.model.TimeInterval
+import domain.model.StampException
 import domain.utility.Logger
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import javax.inject.Inject
 
-class SaveEmptyAttestation @Inject constructor(
-    private val attestationDataRepository: AttestationDataRepository,
+class SaveStampException @Inject constructor(
+    private val stampExceptionDataRepository: StampExceptionDataRepository,
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
-    fun getCompletable(timeInterval: TimeInterval, source: Source, hasNoData: Boolean): Completable =
-        attestationDataRepository.saveEmptyAttestation(timeInterval, source, hasNoData)
+    fun getCompletable(stampException: StampException): Completable =
+        stampExceptionDataRepository.saveStampException(stampException)
             .doOnError {
                 logger.log("Error on ${this::class.qualifiedName}: $it")
             }.subscribeOn(executorScheduler)

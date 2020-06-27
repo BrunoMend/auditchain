@@ -21,15 +21,14 @@ class AttestationDatabaseDataSource @Inject constructor(
 
     fun insertAttestation(attestationDM: AttestationDM): Completable =
         database.upinsert(
-            "INSERT OR IGNORE INTO ${TableAttestation.TABLE_NAME} " +
+            "INSERT INTO ${TableAttestation.TABLE_NAME} " +
                     "( " +
                     "${TableAttestation.DATE_START}, " +
                     "${TableAttestation.DATE_END}, " +
                     "${TableAttestation.SOURCE}, " +
                     "${TableAttestation.DATE_TIMESTAMP}, " +
                     "${TableAttestation.OTS_DATA}, " +
-                    "${TableAttestation.IS_OTS_UPDATED}, " +
-                    "${TableAttestation.HAS_NO_DATA} " +
+                    "${TableAttestation.IS_OTS_UPDATED} " +
                     ") " +
                     "VALUES ( " +
                     "${attestationDM.dateStart}, " +
@@ -37,8 +36,7 @@ class AttestationDatabaseDataSource @Inject constructor(
                     "'${attestationDM.source}', " +
                     "${attestationDM.dateTimestamp}, " +
                     "?, " +
-                    "${attestationDM.isOtsUpdated.boolValue}, " +
-                    "${attestationDM.hasNoData.boolValue} " +
+                    "${attestationDM.isOtsUpdated.boolValue} " +
                     ")",
             attestationDM.otsData
         ).subscribeOn(ioScheduler)

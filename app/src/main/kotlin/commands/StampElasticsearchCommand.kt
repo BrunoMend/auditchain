@@ -6,10 +6,12 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import domain.exception.NoDataException
+import domain.exception.className
 import domain.model.AttestationConfiguration
 import domain.model.Source
+import domain.model.StampException
 import domain.usecase.GetTimeIntervals
-import domain.usecase.SaveEmptyAttestation
+import domain.usecase.SaveStampException
 import domain.usecase.StampElasticsearchData
 import domain.utility.*
 import io.reactivex.rxjava3.core.Observable
@@ -21,7 +23,7 @@ import javax.inject.Inject
 class StampElasticsearchCommand @Inject constructor(
     private val getTimeIntervals: GetTimeIntervals,
     private val stampElasticsearchData: StampElasticsearchData,
-    private val saveEmptyAttestation: SaveEmptyAttestation,
+    private val saveStampException: SaveStampException,
     attestationConfiguration: AttestationConfiguration
 ) : CliktCommand() {
 
@@ -82,10 +84,12 @@ class StampElasticsearchCommand @Inject constructor(
                             )
                             else -> println("Unexpected error")
                         }
-                        saveEmptyAttestation.getCompletable(
-                            timeInterval,
-                            Source.ELASTICSEARCH,
-                            (error is NoDataException)
+                        saveStampException.getCompletable(
+                            StampException(
+                                timeInterval,
+                                Source.ELASTICSEARCH,
+                                error.className
+                            )
                         ).andThen(Observable.empty())
                     }
             }
@@ -94,7 +98,7 @@ class StampElasticsearchCommand @Inject constructor(
                     if (verbose) println(
                         "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
                                 "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
-                                "Stamped at ${attestation.dateTimestamp?.toDateFormat(UI_DATE_FORMAT)} \n" +
+                                "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
                                 "ots proof: ${attestation.otsData}"
                     )
                 },

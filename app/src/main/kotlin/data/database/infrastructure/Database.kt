@@ -17,6 +17,7 @@ class Database @Inject constructor() {
             val connection = newConnection()
             connection.newStatement()
                 .update(TableAttestation.CREATE_TABLE)
+                .update(TableStampException.CREATE_TABLE)
                 .safeClose()
             connection.safeClose()
             isInitialized = true
