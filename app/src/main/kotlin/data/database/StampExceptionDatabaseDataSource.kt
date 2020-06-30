@@ -4,6 +4,7 @@ import data.SemaphoreDataSource
 import data.database.infrastructure.Database
 import data.database.infrastructure.TableStampException
 import data.database.infrastructure.boolValue
+import data.database.infrastructure.toBoolean
 import data.database.model.StampExceptionDM
 import domain.di.IOScheduler
 import io.reactivex.rxjava3.core.Completable
@@ -62,6 +63,6 @@ class StampExceptionDatabaseDataSource @Inject constructor(
             this[TableStampException.SOURCE] as String,
             this[TableStampException.EXCEPTION] as String,
             this[TableStampException.DATE_EXCEPTION] as Long,
-            this[TableStampException.PROCESSED] as Boolean
+            (this[TableStampException.PROCESSED] as Int).toBoolean()
         )
 }

@@ -4,6 +4,7 @@ import data.SemaphoreDataSource
 import data.database.infrastructure.Database
 import data.database.infrastructure.TableAttestation
 import data.database.infrastructure.boolValue
+import data.database.infrastructure.toBoolean
 import data.database.model.AttestationDM
 import data.mappers.toDatabaseModel
 import domain.di.IOScheduler
@@ -74,6 +75,6 @@ class AttestationDatabaseDataSource @Inject constructor(
             this[TableAttestation.SOURCE] as String,
             this[TableAttestation.DATE_TIMESTAMP] as Long,
             this[TableAttestation.OTS_DATA] as ByteArray,
-            this[TableAttestation.IS_OTS_UPDATED] as Boolean
+            (this[TableAttestation.IS_OTS_UPDATED] as Int).toBoolean()
         )
 }

@@ -8,13 +8,13 @@ import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import javax.inject.Inject
 
-class SaveStampException @Inject constructor(
+class SetStampExceptionAsProcessed @Inject constructor(
     private val stampExceptionDataRepository: StampExceptionDataRepository,
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
     fun getCompletable(stampException: StampException): Completable =
-        stampExceptionDataRepository.saveStampException(stampException)
+        stampExceptionDataRepository.setStampExceptionAsProcessed(stampException)
             .doOnError { logger.log("Error on ${this::class.qualifiedName}: $it") }
             .subscribeOn(executorScheduler)
 }

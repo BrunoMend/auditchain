@@ -21,6 +21,6 @@ class StampExceptionRepository @Inject constructor(
         stampExceptionDatabaseDataSource.getUnprocessedStampExceptions(source.toDatabaseModel())
             .map { it.map { it.toDomainModel() } }
 
-    override fun setAsProcessed(stampException: StampException): Completable =
+    override fun setStampExceptionAsProcessed(stampException: StampException): Completable =
         stampExceptionDatabaseDataSource.setAsProcessed(stampException.toDatabaseModel())
 }

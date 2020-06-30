@@ -6,13 +6,10 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import domain.exception.NoDataException
-import domain.exception.className
+import domain.model.Attestation
 import domain.model.AttestationConfiguration
-import domain.model.Source
-import domain.model.StampException
-import domain.usecase.GetTimeIntervals
-import domain.usecase.SaveStampException
-import domain.usecase.StampElasticsearchData
+import domain.usecase.ProcessAllElasticsearchStampExceptions
+import domain.usecase.StampElasticsearchDataByInterval
 import domain.utility.*
 import io.reactivex.rxjava3.core.Observable
 import retrofit2.HttpException
@@ -21,9 +18,8 @@ import java.text.ParseException
 import javax.inject.Inject
 
 class StampElasticsearchCommand @Inject constructor(
-    private val getTimeIntervals: GetTimeIntervals,
-    private val stampElasticsearchData: StampElasticsearchData,
-    private val saveStampException: SaveStampException,
+    private val processAllElasticsearchStampExceptions: ProcessAllElasticsearchStampExceptions,
+    private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval,
     attestationConfiguration: AttestationConfiguration
 ) : CliktCommand() {
 
@@ -61,48 +57,59 @@ class StampElasticsearchCommand @Inject constructor(
             by option("-v", "--verbose").flag()
 
     override fun run() {
+        Observable.concat(
+            processAllElasticsearchStampExceptions.getObservable()
+                .doOnSubscribe { printStartProcessStampExceptions() }
+                .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
+                .doOnNext { result ->
+                    if (result.isSuccess) printStampSuccess(result.getOrThrow())
+                    else printStampError(result.exceptionOrNull())
+                },
+            stampElasticsearchDataByInterval.getObservable(startAt, finishIn)
+                .doOnSubscribe { printStartStamp() }
+                .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
+                .doOnNext { result ->
+                    if (result.isSuccess) printStampSuccess(result.getOrThrow())
+                    else printStampError(result.exceptionOrNull())
+                }
+        ).blockingSubscribe()
+    }
+
+    private fun printStartProcessStampExceptions() {
+        if(verbose) println(
+            "Checking for stamp exceptions to try again..."
+        )
+    }
+
+    private fun printStartStamp() {
         if (verbose) println(
             "Stamping data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
                     "to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
         )
-        getTimeIntervals.getSingle(startAt, finishIn)
-            .flatMapObservable { Observable.fromIterable(it) }
-            .flatMap { timeInterval ->
-                Observable.just(timeInterval)
-                    .flatMapSingle { stampElasticsearchData.getSingle(timeInterval) }
-                    .onErrorResumeNext { error ->
-                        if (verbose) when (error) {
-                            is NoDataException -> println(
-                                "No data to stamp at ${error.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                                        error.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
-                            )
-                            is HttpException -> println(
-                                "Http Exception on get data"
-                            )
-                            is UnknownHostException -> println(
-                                "Fail to get data. Verify your internet connection."
-                            )
-                            else -> println("Unexpected error")
-                        }
-                        saveStampException.getCompletable(
-                            StampException(
-                                timeInterval,
-                                Source.ELASTICSEARCH,
-                                error.className
-                            )
-                        ).andThen(Observable.empty())
-                    }
-            }
-            .blockingSubscribe(
-                { attestation ->
-                    if (verbose) println(
-                        "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                                "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
-                                "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
-                                "ots proof: ${attestation.otsData}"
-                    )
-                },
-                { error -> println("${error::class.qualifiedName}: ${error.message}") }
+    }
+
+    private fun printStampSuccess(attestation: Attestation) {
+        if (verbose) println(
+            "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
+                    "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
+                    "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
+                    "ots proof: ${attestation.otsData}"
+        )
+    }
+
+    private fun printStampError(error: Throwable?) {
+        if (verbose) when (error) {
+            is NoDataException -> println(
+                "No data to stamp at ${error.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
+                        error.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
             )
+            is HttpException -> println(
+                "Http Exception on get data"
+            )
+            is UnknownHostException -> println(
+                "Fail to get data. Verify your internet connection."
+            )
+            else -> println("Unexpected error")
+        }
     }
 }

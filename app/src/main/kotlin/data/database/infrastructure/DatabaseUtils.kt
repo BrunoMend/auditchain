@@ -58,3 +58,6 @@ fun ResultSet?.safeClose() {
 
 val Boolean.boolValue: Int
     get() = if(this) 1 else 0
+
+fun Int.toBoolean() =
+    this == 1

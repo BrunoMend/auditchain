@@ -5,16 +5,18 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import domain.exception.className
 import domain.model.AttestationConfiguration
-import domain.usecase.VerifyElasticsearchData
+import domain.usecase.VerifyElasticsearchDataByInterval
 import domain.usecase.GetTimeIntervals
 import domain.utility.*
+import io.reactivex.rxjava3.core.Completable
 import java.text.ParseException
 import javax.inject.Inject
 
 class VerifyElasticsearchCommand @Inject constructor(
     private val getTimeIntervals: GetTimeIntervals,
-    private val verifyElasticsearchData: VerifyElasticsearchData,
+    private val verifyElasticsearchDataByInterval: VerifyElasticsearchDataByInterval,
     attestationConfiguration: AttestationConfiguration
 ) : CliktCommand() {
 
@@ -41,7 +43,7 @@ class VerifyElasticsearchCommand @Inject constructor(
                             attestationConfiguration.frequencyMillis,
                             false
                         )
-                        if(startAt > result) fail("Finish date must be greater than start date")
+                        if (startAt > result) fail("Finish date must be greater than start date")
                         else result
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
@@ -56,11 +58,23 @@ class VerifyElasticsearchCommand @Inject constructor(
             "Verifying data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
                     " to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
         )
-        getTimeIntervals.getSingle(startAt, finishIn)
-            .flatMapCompletable { verifyElasticsearchData.getCompletable(it) }
-            .blockingSubscribe(
-                { println("finish with success") },
-                { println("finish with error: ${it::class.qualifiedName}: ${it.message}") }
-            )
+        verifyElasticsearchDataByInterval.getObservable(startAt, finishIn)
+            .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
+            .doOnNext { result ->
+                if (result.isSuccess)
+                    result.getOrNull()?.let { blockchainPublications ->
+                        blockchainPublications.forEach {
+                            println(
+                                "${it.blockchain} attests that data exists from " +
+                                        it.datePublication.toDateFormat(UI_DATE_FORMAT)
+                            )
+                        }
+                    }
+                else
+                    result.exceptionOrNull()?.let {
+                        println("Fail to verify: ${it.className}")
+                    }
+            }
+            .blockingSubscribe()
     }
 }

@@ -8,5 +8,5 @@ import io.reactivex.rxjava3.core.Single
 interface StampExceptionDataRepository {
     fun saveStampException(stampException: StampException): Completable
     fun getUnprocessedStampExceptions(source: Source): Single<List<StampException>>
-    fun setAsProcessed(stampException: StampException): Completable
+    fun setStampExceptionAsProcessed(stampException: StampException): Completable
 }
