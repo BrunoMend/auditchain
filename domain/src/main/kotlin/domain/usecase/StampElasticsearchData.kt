@@ -31,7 +31,7 @@ class StampElasticsearchData @Inject constructor(
                                     Attestation(
                                         timeInterval,
                                         Source.ELASTICSEARCH,
-                                        Date().time,
+                                        System.currentTimeMillis(),
                                         otsData
                                     )
                                 saveAttestation.getCompletable(attestation)

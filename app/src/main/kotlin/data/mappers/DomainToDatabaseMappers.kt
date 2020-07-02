@@ -1,7 +1,7 @@
 package data.mappers
 
-import data.database.infrastructure.EnumSource
 import data.database.model.AttestationDM
+import data.database.model.SourceDM
 import data.database.model.StampExceptionDM
 import domain.model.Attestation
 import domain.model.Source
@@ -13,7 +13,9 @@ fun Attestation.toDatabaseModel(): AttestationDM =
         timeInterval.finishIn,
         source.toDatabaseModel(),
         dateTimestamp,
-        otsData
+        otsData,
+        isOtsUpdated,
+        id
     )
 
 fun StampException.toDatabaseModel(): StampExceptionDM =
@@ -22,11 +24,13 @@ fun StampException.toDatabaseModel(): StampExceptionDM =
         timeInterval.finishIn,
         source.toDatabaseModel(),
         exception,
-        dateException
+        dateException,
+        processed,
+        id
     )
 
-fun Source.toDatabaseModel(): String =
+fun Source.toDatabaseModel(): SourceDM =
     when (this) {
-        Source.ELASTICSEARCH -> EnumSource.ELASTICSEARCH
-        Source.POSTGRES -> EnumSource.POSTEGRES
+        Source.ELASTICSEARCH -> SourceDM.ELASTICSEARCH
+        Source.POSTGRES -> SourceDM.POSTGRES
     }

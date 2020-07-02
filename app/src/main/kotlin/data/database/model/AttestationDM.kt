@@ -3,8 +3,9 @@ package data.database.model
 data class AttestationDM(
     val dateStart: Long,
     val dateEnd: Long,
-    val source: String,
+    val source: SourceDM,
     val dateTimestamp: Long,
     val otsData: ByteArray,
-    var isOtsUpdated: Boolean = false
+    val isOtsUpdated: Boolean = false,
+    val id: Long? = null
 )

@@ -3,10 +3,10 @@ package domain.utility
 import java.text.SimpleDateFormat
 import java.util.*
 
+private const val MILLIS_IN_A_DAY: Long = 86400000
+private val TIME_ZONE_MILLIS = -3 * 3600000 //TODO get local Time Zone value
 const val DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
 const val UI_DATE_FORMAT = "yyyy-MM-dd HH:mm"
-const val MILLIS_IN_A_DAY: Long = 86400000
-val TIME_ZONE_MILLIS = -3 * 3600000 //TODO get local Time Zone value
 
 fun Date.toDateFormat(pattern: String = DEFAULT_DATE_FORMAT): String = SimpleDateFormat(pattern).format(this)
 

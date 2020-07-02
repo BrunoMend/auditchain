@@ -19,6 +19,6 @@ class AttestationRepository @Inject constructor(
         attestationDatabaseDataSource.insertAttestation(attestation.toDatabaseModel())
 
     override fun getAttestation(timeInterval: TimeInterval, source: Source): Single<Attestation> =
-        attestationDatabaseDataSource.getAttestation(timeInterval, source)
+        attestationDatabaseDataSource.getAttestation(timeInterval.startAt, timeInterval.finishIn, source.toDatabaseModel())
             .map { it.toDomainModel() }
 }

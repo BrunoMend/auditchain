@@ -1,80 +1,75 @@
 package data.database
 
-import data.SemaphoreDataSource
-import data.database.infrastructure.Database
 import data.database.infrastructure.TableAttestation
-import data.database.infrastructure.boolValue
-import data.database.infrastructure.toBoolean
+import data.database.infrastructure.dao.AttestationDao
 import data.database.model.AttestationDM
+import data.database.model.SourceDM
 import data.mappers.toDatabaseModel
 import domain.di.IOScheduler
-import domain.model.Source
-import domain.model.TimeInterval
+import domain.utility.synchronize
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.statements.api.ExposedBlob
+import org.jetbrains.exposed.sql.transactions.transaction
 import javax.inject.Inject
 
 class AttestationDatabaseDataSource @Inject constructor(
-    @IOScheduler private val ioScheduler: Scheduler,
-    private val database: Database
-) : SemaphoreDataSource() {
+    @IOScheduler private val ioScheduler: Scheduler
+) : BaseDatabaseDataSource() {
 
     fun insertAttestation(attestationDM: AttestationDM): Completable =
-        database.upinsert(
-            "INSERT INTO ${TableAttestation.TABLE_NAME} " +
-                    "( " +
-                    "${TableAttestation.DATE_START}, " +
-                    "${TableAttestation.DATE_END}, " +
-                    "${TableAttestation.SOURCE}, " +
-                    "${TableAttestation.DATE_TIMESTAMP}, " +
-                    "${TableAttestation.OTS_DATA}, " +
-                    "${TableAttestation.IS_OTS_UPDATED} " +
-                    ") " +
-                    "VALUES ( " +
-                    "${attestationDM.dateStart}, " +
-                    "${attestationDM.dateEnd}, " +
-                    "'${attestationDM.source}', " +
-                    "${attestationDM.dateTimestamp}, " +
-                    "?, " +
-                    "${attestationDM.isOtsUpdated.boolValue} " +
-                    ")",
-            attestationDM.otsData
-        ).subscribeOn(ioScheduler)
-            .synchronize()
+        Completable.fromAction {
+            transaction {
+                AttestationDao.new {
+                    dateStart = attestationDM.dateStart
+                    dateEnd = attestationDM.dateEnd
+                    dataSource = attestationDM.source
+                    dateTimestamp = attestationDM.dateTimestamp
+                    otsData = ExposedBlob(attestationDM.otsData)
+                    isOtsUpdated = attestationDM.isOtsUpdated
+                }
+            }
+        }.subscribeOn(ioScheduler)
+            .synchronize(databaseSemaphore)
 
     fun updateOtsData(attestationDM: AttestationDM): Completable =
-        database.upinsert(
-            "UPDATE ${TableAttestation.TABLE_NAME} " +
-                    "SET ${TableAttestation.OTS_DATA} = ?, " +
-                    "${TableAttestation.IS_OTS_UPDATED} = ${attestationDM.isOtsUpdated.boolValue} " +
-                    "WHERE ${TableAttestation.DATE_START} = ${attestationDM.dateStart} " +
-                    "AND ${TableAttestation.DATE_END} = ${attestationDM.dateEnd} " +
-                    "AND ${TableAttestation.SOURCE} = '${attestationDM.source}'",
-            attestationDM.otsData
-        ).subscribeOn(ioScheduler)
-            .synchronize()
+        Completable.fromAction {
+            transaction {
+                getAttestationDao(
+                    attestationDM.dateStart,
+                    attestationDM.dateEnd,
+                    attestationDM.source
+                ).apply {
+                    otsData = ExposedBlob(attestationDM.otsData)
+                }
+            }
+        }.subscribeOn(ioScheduler)
+            .synchronize(databaseSemaphore)
 
     fun getAllAttestations(): Single<List<AttestationDM>> =
-        database.select("SELECT * FROM ${TableAttestation.TABLE_NAME}")
-            .map { it.map { it.toAttestationDM() } }
-            .subscribeOn(ioScheduler)
+        Single.fromCallable {
+            transaction {
+                AttestationDao.all()
+                    .map { it.toDatabaseModel() }
+            }
+        }.subscribeOn(ioScheduler)
+            .synchronize(databaseSemaphore)
 
-    fun getAttestation(timeInterval: TimeInterval, source: Source): Single<AttestationDM> =
-        database.select(
-            "SELECT * FROM ${TableAttestation.TABLE_NAME} " +
-                    "WHERE ${TableAttestation.DATE_START} = ${timeInterval.startAt} " +
-                    "AND ${TableAttestation.DATE_END} = ${timeInterval.finishIn} " +
-                    "AND ${TableAttestation.SOURCE} = '${source.toDatabaseModel()}'"
-        ).map { it.first().toAttestationDM() }
+    fun getAttestation(dateStart: Long, dateEnd: Long, source: SourceDM): Single<AttestationDM> =
+        Single.fromCallable {
+            transaction {
+                getAttestationDao(dateStart, dateEnd, source).toDatabaseModel()
+            }
+        }.subscribeOn(ioScheduler)
+            .synchronize(databaseSemaphore)
 
-    private fun HashMap<String, Any>.toAttestationDM() =
-        AttestationDM(
-            this[TableAttestation.DATE_START] as Long,
-            this[TableAttestation.DATE_END] as Long,
-            this[TableAttestation.SOURCE] as String,
-            this[TableAttestation.DATE_TIMESTAMP] as Long,
-            this[TableAttestation.OTS_DATA] as ByteArray,
-            (this[TableAttestation.IS_OTS_UPDATED] as Int).toBoolean()
-        )
+    // must be called within a transaction
+    private fun getAttestationDao(dateStart: Long, dateEnd: Long, source: SourceDM): AttestationDao =
+        AttestationDao.find {
+            (TableAttestation.dateStart eq dateStart) and
+                    (TableAttestation.dateEnd eq dateEnd) and
+                    (TableAttestation.dataSource eq source)
+        }.single()
 }
