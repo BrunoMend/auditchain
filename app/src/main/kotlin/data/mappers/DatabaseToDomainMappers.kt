@@ -1,21 +1,32 @@
 package data.mappers
 
-import data.database.infrastructure.TableAttestation
+import data.database.infrastructure.EnumSource
 import data.database.model.AttestationDM
+import data.database.model.StampExceptionDM
 import domain.model.Attestation
 import domain.model.Source
+import domain.model.StampException
 import domain.model.TimeInterval
-import java.lang.IllegalArgumentException
 
-fun AttestationDM.toDomainModel() =
+fun AttestationDM.toDomainModel(): Attestation =
     Attestation(
         TimeInterval(dateStart, dateEnd),
-        when(source) {
-            TableAttestation.SOURCE_ELASTICSEARCH -> Source.ELASTICSEARCH
-            TableAttestation.SOURCE_POSTEGRES -> Source.POSTGRES
-            else -> throw IllegalArgumentException("Source not mapped: $source")
-        },
+        sourceToDomainModel(source),
         dateTimestamp,
         otsData
     )
 
+fun StampExceptionDM.toDomainModel(): StampException =
+    StampException(
+        TimeInterval(dateStart, dateEnd),
+        sourceToDomainModel(source),
+        exception,
+        dateException
+    )
+
+fun sourceToDomainModel(source: String): Source =
+    when (source) {
+        EnumSource.ELASTICSEARCH -> Source.ELASTICSEARCH
+        EnumSource.POSTEGRES -> Source.POSTGRES
+        else -> throw IllegalArgumentException("Source not mapped: $source")
+    }

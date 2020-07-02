@@ -1,20 +1,21 @@
 package domain.usecase
 
-import domain.datarepository.TimestampDataRepository
+import domain.datarepository.StampExceptionDataRepository
 import domain.di.IOScheduler
-import domain.model.BlockchainPublication
+import domain.model.Source
+import domain.model.StampException
 import domain.utility.Logger
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
-class VerifyStamp @Inject constructor(
-    private val timestampDataRepository: TimestampDataRepository,
+class GetUnprocessedStampExceptions @Inject constructor(
+    private val stampExceptionDataRepository: StampExceptionDataRepository,
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
-    fun getSingle(originalData: ByteArray, otsData: ByteArray): Single<List<BlockchainPublication>> =
-        timestampDataRepository.verifyStamp(originalData, otsData)
+    fun getSingle(source: Source): Single<List<StampException>> =
+        stampExceptionDataRepository.getUnprocessedStampExceptions(source)
             .doOnError { logger.log("Error on ${this::class.qualifiedName}: $it") }
             .subscribeOn(executorScheduler)
 }

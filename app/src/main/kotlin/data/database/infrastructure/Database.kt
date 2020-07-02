@@ -17,7 +17,7 @@ class Database @Inject constructor() {
             val connection = newConnection()
             connection.newStatement()
                 .update(TableAttestation.CREATE_TABLE)
-                .update(TableBlockchainPublication.CREATE_TABLE)
+                .update(TableStampException.CREATE_TABLE)
                 .safeClose()
             connection.safeClose()
             isInitialized = true
@@ -25,13 +25,13 @@ class Database @Inject constructor() {
     }
 
     private fun newConnection(): Connection =
-        DriverManager.getConnection("jdbc:sqlite:C:/ots/test5.db")
+        DriverManager.getConnection(DATABASE_URL)
 
     fun getLastInsertedRowId(): Single<Int> =
         select("SELECT last_insert_rowid()")
             .map { it.first().toList().first().second as Int }
 
-    fun insert(query: String, bytesValue: ByteArray? = null): Completable =
+    fun upinsert(query: String, bytesValue: ByteArray? = null): Completable =
         Completable.fromAction {
             val sqlConnection = newConnection()
             sqlConnection

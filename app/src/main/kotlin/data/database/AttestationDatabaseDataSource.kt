@@ -3,10 +3,13 @@ package data.database
 import data.SemaphoreDataSource
 import data.database.infrastructure.Database
 import data.database.infrastructure.TableAttestation
-import data.database.infrastructure.TableBlockchainPublication
+import data.database.infrastructure.boolValue
+import data.database.infrastructure.toBoolean
 import data.database.model.AttestationDM
-import data.database.model.BlockchainPublicationDM
+import data.mappers.toDatabaseModel
 import domain.di.IOScheduler
+import domain.model.Source
+import domain.model.TimeInterval
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
@@ -17,64 +20,61 @@ class AttestationDatabaseDataSource @Inject constructor(
     private val database: Database
 ) : SemaphoreDataSource() {
 
-    fun insertAttestation(attestationDM: AttestationDM): Single<Int> =
-        database.insert(
+    fun insertAttestation(attestationDM: AttestationDM): Completable =
+        database.upinsert(
             "INSERT INTO ${TableAttestation.TABLE_NAME} " +
-                    "(${TableAttestation.DATE_START}, " +
+                    "( " +
+                    "${TableAttestation.DATE_START}, " +
                     "${TableAttestation.DATE_END}, " +
                     "${TableAttestation.SOURCE}, " +
+                    "${TableAttestation.DATE_TIMESTAMP}, " +
                     "${TableAttestation.OTS_DATA}, " +
-                    "${TableAttestation.DATE_TIMESTAMP}) " +
-                    "VALUES (${attestationDM.dateStart}, " +
+                    "${TableAttestation.IS_OTS_UPDATED} " +
+                    ") " +
+                    "VALUES ( " +
+                    "${attestationDM.dateStart}, " +
                     "${attestationDM.dateEnd}, " +
                     "'${attestationDM.source}', " +
+                    "${attestationDM.dateTimestamp}, " +
                     "?, " +
-                    "${attestationDM.dateTimestamp})",
+                    "${attestationDM.isOtsUpdated.boolValue} " +
+                    ")",
             attestationDM.otsData
-        ).andThen(database.getLastInsertedRowId())
-            .subscribeOn(ioScheduler)
+        ).subscribeOn(ioScheduler)
             .synchronize()
 
-    //TODO insert several blockchainPublication at one time
-    fun insertBlockchainPublication(blockchainPublicationDM: BlockchainPublicationDM): Completable =
-        database.insert(
-            "INSERT INTO ${TableBlockchainPublication.TABLE_NAME} " +
-                    "(${TableBlockchainPublication.FK_ATTESTATION_ID}, " +
-                    "${TableBlockchainPublication.BLOCKCHAIN}, " +
-                    "${TableBlockchainPublication.BLOCK_ID}, " +
-                    "${TableBlockchainPublication.TIMESTAMP}) " +
-                    "VALUES (${blockchainPublicationDM.attestationId}, " +
-                    "'${blockchainPublicationDM.blockchain}', " +
-                    "'${blockchainPublicationDM.blockId}', " +
-                    "${blockchainPublicationDM.timestamp})"
+    fun updateOtsData(attestationDM: AttestationDM): Completable =
+        database.upinsert(
+            "UPDATE ${TableAttestation.TABLE_NAME} " +
+                    "SET ${TableAttestation.OTS_DATA} = ?, " +
+                    "${TableAttestation.IS_OTS_UPDATED} = ${attestationDM.isOtsUpdated.boolValue} " +
+                    "WHERE ${TableAttestation.DATE_START} = ${attestationDM.dateStart} " +
+                    "AND ${TableAttestation.DATE_END} = ${attestationDM.dateEnd} " +
+                    "AND ${TableAttestation.SOURCE} = '${attestationDM.source}'",
+            attestationDM.otsData
         ).subscribeOn(ioScheduler)
+            .synchronize()
 
-    fun getAttestations(): Single<List<AttestationDM>> =
+    fun getAllAttestations(): Single<List<AttestationDM>> =
         database.select("SELECT * FROM ${TableAttestation.TABLE_NAME}")
-            .map {
-                it.map { resultList ->
-                    AttestationDM(
-                        resultList[TableAttestation.ID] as Int,
-                        resultList[TableAttestation.DATE_START] as Long,
-                        resultList[TableAttestation.DATE_END] as Long,
-                        resultList[TableAttestation.SOURCE] as String,
-                        resultList[TableAttestation.DATE_TIMESTAMP] as Long,
-                        resultList[TableAttestation.OTS_DATA] as ByteArray
-                    )
-                }
-            }.subscribeOn(ioScheduler)
+            .map { it.map { it.toAttestationDM() } }
+            .subscribeOn(ioScheduler)
 
-    fun getBlockchainValidations(): Single<List<BlockchainPublicationDM>> =
-        database.select("SELECT * FROM ${TableBlockchainPublication.TABLE_NAME}")
-            .map {
-                it.map { resultList ->
-                    BlockchainPublicationDM(
-                        resultList[TableBlockchainPublication.ID] as Int,
-                        resultList[TableBlockchainPublication.FK_ATTESTATION_ID] as Int,
-                        resultList[TableBlockchainPublication.BLOCKCHAIN] as String,
-                        resultList[TableBlockchainPublication.BLOCK_ID] as String,
-                        resultList[TableBlockchainPublication.TIMESTAMP] as Long
-                    )
-                }
-            }.subscribeOn(ioScheduler)
+    fun getAttestation(timeInterval: TimeInterval, source: Source): Single<AttestationDM> =
+        database.select(
+            "SELECT * FROM ${TableAttestation.TABLE_NAME} " +
+                    "WHERE ${TableAttestation.DATE_START} = ${timeInterval.startAt} " +
+                    "AND ${TableAttestation.DATE_END} = ${timeInterval.finishIn} " +
+                    "AND ${TableAttestation.SOURCE} = '${source.toDatabaseModel()}'"
+        ).map { it.first().toAttestationDM() }
+
+    private fun HashMap<String, Any>.toAttestationDM() =
+        AttestationDM(
+            this[TableAttestation.DATE_START] as Long,
+            this[TableAttestation.DATE_END] as Long,
+            this[TableAttestation.SOURCE] as String,
+            this[TableAttestation.DATE_TIMESTAMP] as Long,
+            this[TableAttestation.OTS_DATA] as ByteArray,
+            (this[TableAttestation.IS_OTS_UPDATED] as Int).toBoolean()
+        )
 }

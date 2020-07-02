@@ -3,6 +3,7 @@ package domain.usecase
 import domain.di.ComputationScheduler
 import domain.model.AttestationConfiguration
 import domain.model.TimeInterval
+import domain.utility.Logger
 import domain.utility.getNextTimeInterval
 import domain.utility.getPreviousTimeInterval
 import io.reactivex.rxjava3.core.Scheduler
@@ -11,7 +12,8 @@ import javax.inject.Inject
 
 class GetTimeIntervals @Inject constructor(
     private val attestationConfiguration: AttestationConfiguration,
-    @ComputationScheduler private val executorScheduler: Scheduler
+    @ComputationScheduler private val executorScheduler: Scheduler,
+    private val logger: Logger
 ) {
     fun getSingle(startAt: Long, finishIn: Long): Single<List<TimeInterval>> =
         Single.fromCallable<List<TimeInterval>> {
@@ -29,5 +31,6 @@ class GetTimeIntervals @Inject constructor(
             }
 
             intervalList
-        }.subscribeOn(executorScheduler)
+        }.doOnError { logger.log("Error on ${this::class.qualifiedName}: $it") }
+            .subscribeOn(executorScheduler)
 }

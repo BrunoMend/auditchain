@@ -55,3 +55,9 @@ fun Statement?.safeClose() {
 fun ResultSet?.safeClose() {
     if (this != null && !this.isClosed) this.close()
 }
+
+val Boolean.boolValue: Int
+    get() = if(this) 1 else 0
+
+fun Int.toBoolean() =
+    this == 1

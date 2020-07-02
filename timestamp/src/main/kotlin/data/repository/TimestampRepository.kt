@@ -13,6 +13,10 @@ class TimestampRepository @Inject constructor(private val openTimestampsDataSour
     override fun stampData(data: ByteArray): Single<ByteArray> =
         openTimestampsDataSource.stamp(data)
 
+    override fun performUpdates(otsData: ByteArray): Single<Boolean> =
+        openTimestampsDataSource.upgrade(otsData)
+            .andThen(openTimestampsDataSource.isCompletelyUpdated(otsData))
+
     override fun verifyStamp(originalData: ByteArray, otsData: ByteArray): Single<List<BlockchainPublication>> =
         openTimestampsDataSource.verify(originalData, otsData)
             .map { it.toDomain() }
