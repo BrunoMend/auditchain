@@ -11,7 +11,9 @@ class PropertiesStorage @Inject constructor(@IOScheduler private val ioScheduler
     fun getProperties(filePath: String): Single<Properties> =
         Single.fromCallable {
             val properties = Properties()
-            properties.load(FileInputStream(filePath))
+            val inputStream = FileInputStream(filePath)
+            properties.load(inputStream)
+            inputStream.close()
             properties
         }.subscribeOn(ioScheduler)
 }

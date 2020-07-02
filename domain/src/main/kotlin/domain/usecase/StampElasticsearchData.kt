@@ -1,15 +1,12 @@
 package domain.usecase
 
 import domain.di.IOScheduler
+import domain.exception.NoDataException
 import domain.exception.className
-import domain.model.Attestation
-import domain.model.Source
-import domain.model.StampException
-import domain.model.TimeInterval
+import domain.model.*
 import domain.utility.Logger
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
-import java.util.*
 import javax.inject.Inject
 
 class StampElasticsearchData @Inject constructor(
@@ -17,6 +14,7 @@ class StampElasticsearchData @Inject constructor(
     private val stampData: StampData,
     private val saveAttestation: SaveAttestation,
     private val saveStampException: SaveStampException,
+    private val attestationConfiguration: AttestationConfiguration,
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
@@ -41,11 +39,17 @@ class StampElasticsearchData @Inject constructor(
                     .map { Result.success(it) }
             }
             .onErrorResumeNext { error ->
+                val now = System.currentTimeMillis()
+                val isTimedOut: Boolean =
+                    (now - timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis
+                            && error is NoDataException)
                 saveStampException.getCompletable(
                     StampException(
                         timeInterval,
                         Source.ELASTICSEARCH,
-                        error.className
+                        error.className,
+                        now,
+                        isTimedOut
                     )
                 ).andThen(Single.just(Result.failure(error)))
             }

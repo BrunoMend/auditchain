@@ -28,6 +28,7 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                 AttestationConfigurationFM(
                     it.getProperty("frequency").toLong(),
                     it.getProperty("delay").toLong(),
+                    it.getProperty("tryAgainTimeout").toLong(),
                     it.getProperty("attestationFilePath")
                 )
             }
