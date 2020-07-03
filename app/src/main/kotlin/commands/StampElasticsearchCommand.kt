@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import domain.exception.AttestationAlreadyExistsException
 import domain.exception.NoDataException
 import domain.model.Attestation
 import domain.model.AttestationConfiguration
@@ -100,14 +101,16 @@ class StampElasticsearchCommand @Inject constructor(
     private fun printStampError(error: Throwable?) {
         if (verbose) when (error) {
             is NoDataException -> println(
-                "No data to stamp at ${error.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                        error.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)
+                "No data to stamp at ${error.timeInterval}"
             )
             is HttpException -> println(
                 "Http Exception on get data"
             )
             is UnknownHostException -> println(
                 "Fail to get data. Verify your internet connection."
+            )
+            is AttestationAlreadyExistsException -> println(
+                "Data already stamped at ${error.timeInterval}"
             )
             else -> println("Unexpected error")
         }

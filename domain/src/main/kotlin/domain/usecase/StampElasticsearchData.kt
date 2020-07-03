@@ -1,6 +1,7 @@
 package domain.usecase
 
 import domain.di.IOScheduler
+import domain.exception.AttestationAlreadyExistsException
 import domain.exception.NoDataException
 import domain.exception.className
 import domain.model.*
@@ -10,6 +11,7 @@ import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class StampElasticsearchData @Inject constructor(
+    private val validateNoAttestationExists: ValidateNoAttestationExists,
     private val getElasticsearchData: GetElasticsearchData,
     private val stampData: StampData,
     private val saveAttestation: SaveAttestation,
@@ -21,7 +23,8 @@ class StampElasticsearchData @Inject constructor(
     fun getSingle(timeInterval: TimeInterval): Single<Result<Attestation>> =
         Single.just(timeInterval)
             .flatMap {
-                getElasticsearchData.getSingle(timeInterval)
+                validateNoAttestationExists.getCompletable(Source.ELASTICSEARCH, timeInterval)
+                    .andThen(getElasticsearchData.getSingle(timeInterval))
                     .flatMap { data ->
                         stampData.getSingle(data)
                             .flatMap { otsData ->
@@ -40,16 +43,21 @@ class StampElasticsearchData @Inject constructor(
             }
             .onErrorResumeNext { error ->
                 val now = System.currentTimeMillis()
+
                 val isTimedOut: Boolean =
                     (now - timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis
                             && error is NoDataException)
+
+                val needsProcess: Boolean =
+                    !isTimedOut && error !is AttestationAlreadyExistsException
+
                 saveStampException.getCompletable(
                     StampException(
                         timeInterval,
                         Source.ELASTICSEARCH,
                         error.className,
                         now,
-                        isTimedOut
+                        !needsProcess
                     )
                 ).andThen(Single.just(Result.failure(error)))
             }

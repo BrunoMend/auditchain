@@ -10,6 +10,5 @@ data class TimeInterval(val startAt: Long, val finishIn: Long) {
     }
 
     override fun toString(): String =
-        "Start at: ${startAt.toDateFormat(UI_DATE_FORMAT)}\n" +
-                "finish in: ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
+        "${startAt.toDateFormat(UI_DATE_FORMAT)} - ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
 }
