@@ -11,6 +11,7 @@ import domain.model.Attestation
 import domain.model.AttestationConfiguration
 import domain.usecase.ProcessAllElasticsearchStampExceptions
 import domain.usecase.StampElasticsearchDataByInterval
+import domain.usecase.UpdateAttestationsOtsData
 import domain.utility.*
 import io.reactivex.rxjava3.core.Observable
 import retrofit2.HttpException
@@ -19,6 +20,7 @@ import java.text.ParseException
 import javax.inject.Inject
 
 class StampElasticsearchCommand @Inject constructor(
+    private val updateAttestationsOtsData: UpdateAttestationsOtsData,
     private val processAllElasticsearchStampExceptions: ProcessAllElasticsearchStampExceptions,
     private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval,
     attestationConfiguration: AttestationConfiguration
@@ -58,26 +60,35 @@ class StampElasticsearchCommand @Inject constructor(
             by option("-v", "--verbose").flag()
 
     override fun run() {
-        Observable.concat(
-            processAllElasticsearchStampExceptions.getObservable()
-                .doOnSubscribe { printStartProcessStampExceptions() }
-                .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
-                .doOnNext { result ->
-                    if (result.isSuccess) printStampSuccess(result.getOrThrow())
-                    else printStampError(result.exceptionOrNull())
-                },
-            stampElasticsearchDataByInterval.getObservable(startAt, finishIn)
-                .doOnSubscribe { printStartStamp() }
-                .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
-                .doOnNext { result ->
-                    if (result.isSuccess) printStampSuccess(result.getOrThrow())
-                    else printStampError(result.exceptionOrNull())
-                }
-        ).blockingSubscribe()
+        updateAttestationsOtsData.getCompletable()
+            .doOnSubscribe { printStartUpdateAttestationsOtsData() }
+            .andThen(
+                Observable.concat(
+                    processAllElasticsearchStampExceptions.getObservable()
+                        .doOnSubscribe { printStartProcessStampExceptions() }
+                        .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
+                        .doOnNext { result ->
+                            if (result.isSuccess) printStampSuccess(result.getOrThrow())
+                            else printStampError(result.exceptionOrNull())
+                        },
+                    stampElasticsearchDataByInterval.getObservable(startAt, finishIn)
+                        .doOnSubscribe { printStartStamp() }
+                        .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
+                        .doOnNext { result ->
+                            if (result.isSuccess) printStampSuccess(result.getOrThrow())
+                            else printStampError(result.exceptionOrNull())
+                        }
+                )).blockingSubscribe()
+    }
+
+    private fun printStartUpdateAttestationsOtsData() {
+        if (verbose) println(
+            "Updating OTS data from previous stamps"
+        )
     }
 
     private fun printStartProcessStampExceptions() {
-        if(verbose) println(
+        if (verbose) println(
             "Checking for stamp exceptions to try again..."
         )
     }

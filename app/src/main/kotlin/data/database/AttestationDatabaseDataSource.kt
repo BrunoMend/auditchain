@@ -37,16 +37,27 @@ class AttestationDatabaseDataSource @Inject constructor(
     fun updateOtsData(attestationDM: AttestationDM): Completable =
         Completable.fromAction {
             transaction {
-                getAttestationDao(
+                (attestationDM.id?.let {
+                    AttestationDao.findById(it)
+                } ?: getAttestationDao(
                     attestationDM.dateStart,
                     attestationDM.dateEnd,
                     attestationDM.source
-                ).apply {
+                )).apply {
                     otsData = ExposedBlob(attestationDM.otsData)
+                    isOtsUpdated = attestationDM.isOtsUpdated
                 }
             }
         }.subscribeOn(ioScheduler)
             .synchronize(databaseSemaphore)
+
+    fun getNotOtsUpdatedAttestations(): Single<List<AttestationDM>> =
+        Single.fromCallable {
+            transaction {
+                AttestationDao.find { TableAttestation.isOtsUpdated eq false }
+                    .map { it.toDatabaseModel() }
+            }
+        }
 
     fun getAllAttestations(): Single<List<AttestationDM>> =
         Single.fromCallable {
