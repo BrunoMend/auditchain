@@ -12,8 +12,6 @@ class ConfigurationRepository @Inject constructor(
     private val propertiesFileDataSource: PropertiesFileDataSource
 ) : ConfigurationDataRepository {
 
-    //TODO save configurations on memory source
-
     override fun getElasticsearchConfiguration(): Single<ElasticsearchConfiguration> =
         propertiesFileDataSource.getElasticsearchConfiguration().map { it.toDomain() }
 

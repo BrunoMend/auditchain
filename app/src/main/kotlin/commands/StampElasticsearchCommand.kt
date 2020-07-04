@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import domain.exception.AttestationAlreadyExistsException
+import domain.exception.MaxTimeIntervalExceededException
 import domain.exception.NoDataException
 import domain.model.Attestation
 import domain.model.AttestationConfiguration
@@ -90,7 +91,14 @@ class StampElasticsearchCommand @Inject constructor(
                             if (result.isSuccess) printStampSuccess(result.getOrThrow())
                             else printStampError(result.exceptionOrNull())
                         }
-                )).blockingSubscribe()
+                ))
+            .blockingSubscribe(
+                { println("Successfully completed process") },
+                {error ->
+                    if (error is MaxTimeIntervalExceededException)
+                        println("You have exceeded the maximum time interval")
+                }
+            )
     }
 
     private fun getDefaultStartDate(): Long =

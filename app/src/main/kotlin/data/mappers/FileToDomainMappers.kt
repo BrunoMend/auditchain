@@ -9,4 +9,4 @@ fun ElasticsearchConfigurationFM.toDomain() =
     ElasticsearchConfiguration(elasticHost, elasticUser, elasticPwds, indexPattern, rangeParameter, resultMaxSize)
 
 fun AttestationConfigurationFM.toDomain() =
-    AttestationConfiguration(frequency, delay, tryAgainTimeout, attestationFilePath)
+    AttestationConfiguration(frequency, delay, tryAgainTimeout, maxTimeInterval, attestationFilePath)
