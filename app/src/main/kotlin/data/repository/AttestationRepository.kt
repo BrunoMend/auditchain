@@ -28,4 +28,8 @@ class AttestationRepository @Inject constructor(
 
     override fun updateOtsData(attestation: Attestation): Completable =
         attestationDatabaseDataSource.updateOtsData(attestation.toDatabaseModel())
+
+    override fun getLastStampedTime(source: Source): Single<Long> =
+        attestationDatabaseDataSource.getLastAttestation(source.toDatabaseModel())
+            .map { it.dateEnd }
 }

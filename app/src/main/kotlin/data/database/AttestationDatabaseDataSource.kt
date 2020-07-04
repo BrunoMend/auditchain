@@ -6,6 +6,7 @@ import data.database.model.AttestationDM
 import data.database.model.SourceDM
 import data.mappers.toDatabaseModel
 import domain.di.IOScheduler
+import domain.exception.NoAttestationException
 import domain.utility.synchronize
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
@@ -59,15 +60,6 @@ class AttestationDatabaseDataSource @Inject constructor(
             }
         }
 
-    fun getAllAttestations(): Single<List<AttestationDM>> =
-        Single.fromCallable {
-            transaction {
-                AttestationDao.all()
-                    .map { it.toDatabaseModel() }
-            }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
-
     fun getAttestation(dateStart: Long, dateEnd: Long, source: SourceDM): Single<AttestationDM> =
         Single.fromCallable {
             transaction {
@@ -75,6 +67,16 @@ class AttestationDatabaseDataSource @Inject constructor(
             }
         }.subscribeOn(ioScheduler)
             .synchronize(databaseSemaphore)
+
+    fun getLastAttestation(source: SourceDM): Single<AttestationDM> =
+        Single.fromCallable {
+            transaction {
+                AttestationDao
+                    .find { TableAttestation.dataSource eq source }
+                    .maxBy { it.dateEnd }
+                    ?.toDatabaseModel() ?: throw NoAttestationException("No attestation found to source $source")
+            }
+        }
 
     // must be called within a transaction
     private fun getAttestationDao(dateStart: Long, dateEnd: Long, source: SourceDM): AttestationDao =

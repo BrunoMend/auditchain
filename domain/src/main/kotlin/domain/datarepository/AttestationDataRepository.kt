@@ -11,4 +11,5 @@ interface AttestationDataRepository {
     fun getAttestation(timeInterval: TimeInterval, source: Source): Single<Attestation>
     fun getNotOtsUpdatedAttestations(): Single<List<Attestation>>
     fun updateOtsData(attestation: Attestation): Completable
+    fun getLastStampedTime(source: Source): Single<Long>
 }

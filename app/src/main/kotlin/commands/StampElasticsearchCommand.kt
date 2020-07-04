@@ -9,6 +9,8 @@ import domain.exception.AttestationAlreadyExistsException
 import domain.exception.NoDataException
 import domain.model.Attestation
 import domain.model.AttestationConfiguration
+import domain.model.Source
+import domain.usecase.GetLastStampedTime
 import domain.usecase.ProcessAllElasticsearchStampExceptions
 import domain.usecase.StampElasticsearchDataByInterval
 import domain.usecase.UpdateAttestationsOtsData
@@ -20,10 +22,11 @@ import java.text.ParseException
 import javax.inject.Inject
 
 class StampElasticsearchCommand @Inject constructor(
+    private val attestationConfiguration: AttestationConfiguration,
+    private val getLastStampedTime: GetLastStampedTime,
     private val updateAttestationsOtsData: UpdateAttestationsOtsData,
     private val processAllElasticsearchStampExceptions: ProcessAllElasticsearchStampExceptions,
-    private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval,
-    attestationConfiguration: AttestationConfiguration
+    private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval
 ) : CliktCommand() {
 
     private val startAt: Long
@@ -38,7 +41,7 @@ class StampElasticsearchCommand @Inject constructor(
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
                     }
-                }.default(getPreviousTimeInterval(System.currentTimeMillis(), attestationConfiguration.frequencyMillis))
+                }.default(getDefaultStartDate())
 
     private val finishIn: Long
             by option(help = "Finish moment to realize stamps")
@@ -49,17 +52,26 @@ class StampElasticsearchCommand @Inject constructor(
                             attestationConfiguration.frequencyMillis,
                             false
                         )
-                        if (startAt > result) fail("Finish date must be greater than start date")
+                        if (startAt >= result) fail("Finish date must be greater than start date")
+                        if (result + attestationConfiguration.delayMillis > System.currentTimeMillis())
+                            fail(
+                                "Stamp data from finish in ${result.toDateFormat(UI_DATE_FORMAT)} must be called after " +
+                                        (result + attestationConfiguration.delayMillis).toDateFormat(UI_DATE_FORMAT)
+                            )
                         else result
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
                     }
-                }.default(getNextTimeInterval(System.currentTimeMillis(), attestationConfiguration.frequencyMillis))
+                }.default(getPreviousTimeInterval(System.currentTimeMillis(), attestationConfiguration.frequencyMillis))
 
-    private val verbose
+    private val verbose: Boolean
             by option("-v", "--verbose").flag()
 
     override fun run() {
+        if (startAt >= finishIn) {
+            println("There is no data to stamp now.")
+            return
+        }
         updateAttestationsOtsData.getCompletable()
             .doOnSubscribe { printStartUpdateAttestationsOtsData() }
             .andThen(
@@ -80,6 +92,16 @@ class StampElasticsearchCommand @Inject constructor(
                         }
                 )).blockingSubscribe()
     }
+
+    private fun getDefaultStartDate(): Long =
+        getLastStampedTime.getSingle(Source.ELASTICSEARCH)
+            .onErrorReturn {
+                getPreviousTimeInterval(
+                    System.currentTimeMillis() - attestationConfiguration.frequencyMillis,
+                    attestationConfiguration.frequencyMillis
+                )
+            }
+            .blockingGet()
 
     private fun printStartUpdateAttestationsOtsData() {
         if (verbose) println(
