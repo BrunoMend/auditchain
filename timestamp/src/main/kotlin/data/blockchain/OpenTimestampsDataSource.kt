@@ -6,7 +6,6 @@ import com.eternitywall.ots.VerifyResult
 import com.eternitywall.ots.attestation.PendingAttestation
 import com.eternitywall.ots.op.OpSHA256
 import domain.exception.InvalidAttestationException
-import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
 import java.util.*
 import javax.inject.Inject
@@ -29,10 +28,11 @@ class OpenTimestampsDataSource @Inject constructor() {
             result
         }
 
-    fun upgrade(otsData: ByteArray): Completable =
-        Completable.fromAction {
+    fun upgrade(otsData: ByteArray): Single<ByteArray> =
+        Single.fromCallable {
             val detachedOts: DetachedTimestampFile = DetachedTimestampFile.deserialize(otsData)
             OpenTimestamps.upgrade(detachedOts)
+            detachedOts.serialize()
         }
 
     fun isCompletelyUpdated(otsData: ByteArray): Single<Boolean> =

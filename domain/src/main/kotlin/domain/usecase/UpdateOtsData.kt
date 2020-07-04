@@ -1,7 +1,5 @@
 package domain.usecase
 
-import domain.datarepository.AttestationDataRepository
-import domain.datarepository.TimestampDataRepository
 import domain.di.IOScheduler
 import domain.model.Attestation
 import domain.utility.Logger
@@ -10,16 +8,24 @@ import io.reactivex.rxjava3.core.Scheduler
 import javax.inject.Inject
 
 class UpdateOtsData @Inject constructor(
-    private val timestampDataRepository: TimestampDataRepository,
-    private val attestationDataRepository: AttestationDataRepository,
+    private val upgradeOstData: UpgradeOstData,
+    private val verifyIsOtsCompletelyUpdated: VerifyIsOtsCompletelyUpdated,
+    private val saveUpdatedOtsData: SaveUpdatedOtsData,
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
     fun getCompletable(attestation: Attestation): Completable =
-        timestampDataRepository.performUpdates(attestation.otsData)
-            .flatMapCompletable {
-                attestation.isOtsUpdated = it
-                attestationDataRepository.updateOtsData(attestation)
+        upgradeOstData.getSingle(attestation.otsData)
+            .flatMapCompletable { updatedOtsData ->
+                if (!attestation.otsData.contentEquals(updatedOtsData)) {
+                    attestation.otsData = updatedOtsData
+                    verifyIsOtsCompletelyUpdated.getSingle(updatedOtsData)
+                        .flatMapCompletable {
+                            attestation.isOtsUpdated = it
+                            saveUpdatedOtsData.getCompletable(attestation)
+                        }
+                } else Completable.complete()
             }.doOnError { logger.log("Error on ${this::class.qualifiedName}: $it") }
             .subscribeOn(executorScheduler)
+
 }

@@ -1,10 +1,9 @@
 package domain.usecase
 
 import domain.di.IOScheduler
-import domain.exception.AttestationAlreadyExistsException
-import domain.exception.NoDataException
-import domain.exception.className
-import domain.model.*
+import domain.model.Attestation
+import domain.model.Source
+import domain.model.TimeInterval
 import domain.utility.Logger
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
@@ -16,7 +15,7 @@ class StampElasticsearchData @Inject constructor(
     private val stampData: StampData,
     private val saveAttestation: SaveAttestation,
     private val saveStampException: SaveStampException,
-    private val attestationConfiguration: AttestationConfiguration,
+    private val buildStampException: BuildStampException,
     @IOScheduler private val executorScheduler: Scheduler,
     private val logger: Logger
 ) {
@@ -42,24 +41,9 @@ class StampElasticsearchData @Inject constructor(
                     .map { Result.success(it) }
             }
             .onErrorResumeNext { error ->
-                val now = System.currentTimeMillis()
-
-                val isTimedOut: Boolean =
-                    (now - timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis
-                            && error is NoDataException)
-
-                val needsProcess: Boolean =
-                    !isTimedOut && error !is AttestationAlreadyExistsException
-
-                saveStampException.getCompletable(
-                    StampException(
-                        timeInterval,
-                        Source.ELASTICSEARCH,
-                        error.className,
-                        now,
-                        !needsProcess
-                    )
-                ).andThen(Single.just(Result.failure(error)))
+                buildStampException.getSingle(Source.ELASTICSEARCH, timeInterval, error)
+                    .flatMapCompletable { saveStampException.getCompletable(it) }
+                    .andThen(Single.just(Result.failure(error)))
             }
             .doOnError { logger.log("Error on ${this::class.qualifiedName}: $it") }
             .subscribeOn(executorScheduler)

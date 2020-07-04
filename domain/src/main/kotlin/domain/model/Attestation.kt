@@ -4,7 +4,7 @@ data class Attestation(
     val timeInterval: TimeInterval,
     val source: Source,
     val dateTimestamp: Long,
-    val otsData: ByteArray,
+    var otsData: ByteArray,
     var isOtsUpdated: Boolean = false,
     val id: Long? = null
 )

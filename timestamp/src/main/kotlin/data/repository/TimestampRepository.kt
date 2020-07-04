@@ -7,15 +7,18 @@ import domain.model.BlockchainPublication
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
-class TimestampRepository @Inject constructor(private val openTimestampsDataSource: OpenTimestampsDataSource) :
-    TimestampDataRepository {
+class TimestampRepository @Inject constructor(
+    private val openTimestampsDataSource: OpenTimestampsDataSource
+) : TimestampDataRepository {
 
     override fun stampData(data: ByteArray): Single<ByteArray> =
         openTimestampsDataSource.stamp(data)
 
-    override fun performUpdates(otsData: ByteArray): Single<Boolean> =
+    override fun upgradeOstData(otsData: ByteArray): Single<ByteArray> =
         openTimestampsDataSource.upgrade(otsData)
-            .andThen(openTimestampsDataSource.isCompletelyUpdated(otsData))
+
+    override fun verifyIsOtsCompletelyUpdated(otsData: ByteArray): Single<Boolean> =
+        openTimestampsDataSource.isCompletelyUpdated(otsData)
 
     override fun verifyStamp(originalData: ByteArray, otsData: ByteArray): Single<List<BlockchainPublication>> =
         openTimestampsDataSource.verify(originalData, otsData)

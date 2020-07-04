@@ -83,7 +83,7 @@ class StampElasticsearchCommand @Inject constructor(
 
     private fun printStartUpdateAttestationsOtsData() {
         if (verbose) println(
-            "Updating OTS data from previous stamps"
+            "Updating OTS data from previous stamps..."
         )
     }
 
