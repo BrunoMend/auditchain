@@ -21,6 +21,14 @@ class StampExceptionDatabaseDataSource @Inject constructor(
     fun insertStampException(stampExceptionDM: StampExceptionDM): Completable =
         Completable.fromAction {
             transaction {
+                StampExceptionDao.find{
+                    (TableStampException.dataSource eq stampExceptionDM.source) and
+                            (TableStampException.dateStart eq stampExceptionDM.dateStart) and
+                            (TableStampException.dateEnd eq stampExceptionDM.dateEnd) and
+                            (TableStampException.processed eq false)
+                }.forEach {
+                    it.processed = true
+                }
                 StampExceptionDao.new {
                     dateStart = stampExceptionDM.dateStart
                     dateEnd = stampExceptionDM.dateEnd

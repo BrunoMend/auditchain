@@ -19,7 +19,7 @@ class StampElasticsearchData @Inject constructor(
         Single.just(request.timeInterval)
             .flatMap { timeInterval ->
                 validateNoAttestationExists
-                    .getRawCompletable(ValidateNoAttestationExists.Request(Source.ELASTICSEARCH, timeInterval))
+                    .getCompletable(ValidateNoAttestationExists.Request(Source.ELASTICSEARCH, timeInterval))
                     .andThen(getElasticsearchData.getRawSingle(GetElasticsearchData.Request(timeInterval)))
                     .flatMap { data ->
                         stampData.getRawSingle(StampData.Request(data))

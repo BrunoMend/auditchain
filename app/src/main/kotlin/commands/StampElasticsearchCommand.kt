@@ -79,7 +79,6 @@ class StampElasticsearchCommand @Inject constructor(
                 Observable.concat(
                     processAllElasticsearchStampExceptions.getObservable(Unit)
                         .doOnSubscribe { printStartProcessStampExceptions() }
-                        .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
                         .doOnNext { result ->
                             if (result.isSuccess) printStampSuccess(result.getOrThrow())
                             else printStampError(result.exceptionOrNull())
@@ -87,19 +86,15 @@ class StampElasticsearchCommand @Inject constructor(
                     stampElasticsearchDataByInterval
                         .getObservable(StampElasticsearchDataByInterval.Request(startAt, finishIn))
                         .doOnSubscribe { printStartStamp() }
-                        .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
                         .doOnNext { result ->
                             if (result.isSuccess) printStampSuccess(result.getOrThrow())
                             else printStampError(result.exceptionOrNull())
                         }
                 ))
-            .blockingSubscribe(
-                { println("Successfully completed process") },
-                { error ->
-                    if (error is MaxTimeIntervalExceededException)
-                        println("You have exceeded the maximum time interval")
-                }
-            )
+            .doOnComplete { println("Process completed") }
+            .doOnError { printProcessError(it) }
+            .onErrorComplete()
+            .blockingSubscribe()
     }
 
     private fun getDefaultStartDate(): Long =
@@ -154,7 +149,17 @@ class StampElasticsearchCommand @Inject constructor(
             is AttestationAlreadyExistsException -> println(
                 "Data already stamped at ${error.timeInterval}"
             )
-            else -> println("Unexpected error")
+            else -> {
+                println("Unexpected stamp error - $error")
+            }
+        }
+    }
+
+    private fun printProcessError(error: Throwable?) {
+        when (error) {
+            is MaxTimeIntervalExceededException ->
+                println("You have exceeded the maximum time interval")
+            else -> println("Unexpected process error - $error")
         }
     }
 }
