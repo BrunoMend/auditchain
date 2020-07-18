@@ -30,8 +30,8 @@ class StampExceptionDatabaseDataSource @Inject constructor(
                     processed = stampExceptionDM.processed
                 }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun getUnprocessedStampExceptions(source: SourceDM): Single<List<StampExceptionDM>> =
         Single.fromCallable {
@@ -41,8 +41,8 @@ class StampExceptionDatabaseDataSource @Inject constructor(
                             (TableStampException.processed eq false)
                 }.map { it.toDatabaseModel() }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun setAsProcessed(stampExceptionDM: StampExceptionDM): Completable =
         Completable.fromAction {
@@ -51,7 +51,6 @@ class StampExceptionDatabaseDataSource @Inject constructor(
                     processed = true
                 } ?: throw NullPointerException()
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
-
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 }

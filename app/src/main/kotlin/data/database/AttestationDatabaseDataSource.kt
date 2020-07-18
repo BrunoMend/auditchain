@@ -32,8 +32,8 @@ class AttestationDatabaseDataSource @Inject constructor(
                     isOtsUpdated = attestationDM.isOtsUpdated
                 }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun updateOtsData(attestationDM: AttestationDM): Completable =
         Completable.fromAction {
@@ -49,8 +49,8 @@ class AttestationDatabaseDataSource @Inject constructor(
                     isOtsUpdated = attestationDM.isOtsUpdated
                 }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun getNotOtsUpdatedAttestations(): Single<List<AttestationDM>> =
         Single.fromCallable {
@@ -58,15 +58,16 @@ class AttestationDatabaseDataSource @Inject constructor(
                 AttestationDao.find { TableAttestation.isOtsUpdated eq false }
                     .map { it.toDatabaseModel() }
             }
-        }
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun getAttestation(dateStart: Long, dateEnd: Long, source: SourceDM): Single<AttestationDM> =
         Single.fromCallable {
             transaction {
                 getAttestationDao(dateStart, dateEnd, source).toDatabaseModel()
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun getLastAttestation(source: SourceDM): Single<AttestationDM> =
         Single.fromCallable {
@@ -76,7 +77,8 @@ class AttestationDatabaseDataSource @Inject constructor(
                     .maxBy { it.dateEnd }
                     ?.toDatabaseModel() ?: throw NoAttestationException("No attestation found to source $source")
             }
-        }
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     // must be called within a transaction
     private fun getAttestationDao(dateStart: Long, dateEnd: Long, source: SourceDM): AttestationDao =

@@ -7,7 +7,10 @@ import javax.inject.Inject
 
 class SaveUpdatedOtsData @Inject constructor(
     private val attestationDataRepository: AttestationDataRepository
-) {
-    fun getCompletable(attestation: Attestation): Completable =
-        attestationDataRepository.updateOtsData(attestation)
+) : CompletableUseCase<SaveUpdatedOtsData.Request>() {
+
+    override fun getRawCompletable(request: Request): Completable =
+        attestationDataRepository.updateOtsData(request.attestation)
+
+    data class Request(val attestation: Attestation)
 }

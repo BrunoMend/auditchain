@@ -58,7 +58,8 @@ class VerifyElasticsearchCommand @Inject constructor(
             "Verifying data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
                     " to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
         )
-        verifyElasticsearchDataByInterval.getObservable(startAt, finishIn)
+        verifyElasticsearchDataByInterval
+            .getObservable(VerifyElasticsearchDataByInterval.Request(startAt, finishIn))
             .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
             .doOnNext { result ->
                 if (result.isSuccess)

@@ -6,7 +6,10 @@ import javax.inject.Inject
 
 class UpgradeOstData @Inject constructor(
     private val timestampDataRepository: TimestampDataRepository
-) {
-    fun getSingle(otsData: ByteArray): Single<ByteArray> =
-        timestampDataRepository.upgradeOstData(otsData)
+) : SingleUseCase<ByteArray, UpgradeOstData.Request>() {
+
+    override fun getRawSingle(request: Request): Single<ByteArray> =
+        timestampDataRepository.upgradeOstData(request.otsData)
+
+    data class Request(val otsData: ByteArray)
 }

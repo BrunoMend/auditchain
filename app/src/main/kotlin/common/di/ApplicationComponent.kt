@@ -5,7 +5,6 @@ import dagger.Component
 import domain.datarepository.*
 import domain.di.ComputationScheduler
 import domain.di.IOScheduler
-import domain.utility.Logger
 import io.reactivex.rxjava3.core.Scheduler
 import javax.inject.Singleton
 
@@ -16,7 +15,6 @@ interface ApplicationComponent {
     fun ioScheduler(): Scheduler
     @ComputationScheduler
     fun computationScheduler(): Scheduler
-    fun logger(): Logger
     fun elasticsearchRepository(): ElasticsearchDataRepository
     fun configurationRepository(): ConfigurationDataRepository
     fun timestampRepository(): TimestampDataRepository

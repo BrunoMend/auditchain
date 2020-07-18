@@ -73,18 +73,19 @@ class StampElasticsearchCommand @Inject constructor(
             println("There is no data to stamp now.")
             return
         }
-        updateAttestationsOtsData.getCompletable()
+        updateAttestationsOtsData.getCompletable(Unit)
             .doOnSubscribe { printStartUpdateAttestationsOtsData() }
             .andThen(
                 Observable.concat(
-                    processAllElasticsearchStampExceptions.getObservable()
+                    processAllElasticsearchStampExceptions.getObservable(Unit)
                         .doOnSubscribe { printStartProcessStampExceptions() }
                         .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
                         .doOnNext { result ->
                             if (result.isSuccess) printStampSuccess(result.getOrThrow())
                             else printStampError(result.exceptionOrNull())
                         },
-                    stampElasticsearchDataByInterval.getObservable(startAt, finishIn)
+                    stampElasticsearchDataByInterval
+                        .getObservable(StampElasticsearchDataByInterval.Request(startAt, finishIn))
                         .doOnSubscribe { printStartStamp() }
                         .doOnError { error -> println("${error::class.qualifiedName}: ${error.message}") }
                         .doOnNext { result ->
@@ -94,7 +95,7 @@ class StampElasticsearchCommand @Inject constructor(
                 ))
             .blockingSubscribe(
                 { println("Successfully completed process") },
-                {error ->
+                { error ->
                     if (error is MaxTimeIntervalExceededException)
                         println("You have exceeded the maximum time interval")
                 }
@@ -102,7 +103,7 @@ class StampElasticsearchCommand @Inject constructor(
     }
 
     private fun getDefaultStartDate(): Long =
-        getLastStampedTime.getSingle(Source.ELASTICSEARCH)
+        getLastStampedTime.getSingle(GetLastStampedTime.Request(Source.ELASTICSEARCH))
             .onErrorReturn {
                 getPreviousTimeInterval(
                     System.currentTimeMillis() - attestationConfiguration.frequencyMillis,

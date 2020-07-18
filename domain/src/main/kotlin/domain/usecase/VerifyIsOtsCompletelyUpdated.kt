@@ -6,7 +6,10 @@ import javax.inject.Inject
 
 class VerifyIsOtsCompletelyUpdated @Inject constructor(
     private val timestampDataRepository: TimestampDataRepository
-) {
-    fun getSingle(otsData: ByteArray): Single<Boolean> =
-        timestampDataRepository.verifyIsOtsCompletelyUpdated(otsData)
+) : SingleUseCase<Boolean, VerifyIsOtsCompletelyUpdated.Request>() {
+
+    override fun getRawSingle(request: Request): Single<Boolean> =
+        timestampDataRepository.verifyIsOtsCompletelyUpdated(request.otsData)
+
+    data class Request(val otsData: ByteArray)
 }

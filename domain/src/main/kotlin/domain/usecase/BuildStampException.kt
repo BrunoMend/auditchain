@@ -9,24 +9,27 @@ import javax.inject.Inject
 
 class BuildStampException @Inject constructor(
     private val attestationConfiguration: AttestationConfiguration
-) {
-    fun getSingle(source: Source, timeInterval: TimeInterval, exception: Throwable): Single<StampException> =
+) : SingleUseCase<StampException, BuildStampException.Request>() {
+
+    override fun getRawSingle(request: Request): Single<StampException> =
         Single.fromCallable {
             val now = System.currentTimeMillis()
 
             val isTimedOut: Boolean =
-                (exception is NoDataException &&
-                        now - timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis)
+                (request.exception is NoDataException &&
+                        now - request.timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis)
 
             val needsProcess: Boolean =
-                !isTimedOut && exception !is AttestationAlreadyExistsException
+                !isTimedOut && request.exception !is AttestationAlreadyExistsException
 
             StampException(
-                timeInterval,
-                source,
-                exception.className,
+                request.timeInterval,
+                request.source,
+                request.exception.className,
                 now,
                 !needsProcess
             )
         }
+
+    data class Request(val source: Source, val timeInterval: TimeInterval, val exception: Throwable)
 }
