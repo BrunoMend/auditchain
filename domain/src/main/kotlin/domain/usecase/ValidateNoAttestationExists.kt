@@ -12,7 +12,7 @@ class ValidateNoAttestationExists @Inject constructor(
 
     override fun getRawCompletable(request: Request): Completable =
         getAttestation.getRawSingle(GetAttestation.Request(request.source, request.timeInterval))
-            .flatMapCompletable { throw AttestationAlreadyExistsException(request.timeInterval) }
+            .flatMapCompletable { throw AttestationAlreadyExistsException(it) }
             .onErrorComplete { it is NoSuchElementException }
 
     data class Request(val source: Source, val timeInterval: TimeInterval)

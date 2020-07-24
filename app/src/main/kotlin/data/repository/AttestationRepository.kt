@@ -4,6 +4,7 @@ import data.database.AttestationDatabaseDataSource
 import data.mappers.toDatabaseModel
 import data.mappers.toDomainModel
 import domain.datarepository.AttestationDataRepository
+import domain.exception.NoAttestationException
 import domain.model.Attestation
 import domain.model.Source
 import domain.model.TimeInterval
@@ -31,5 +32,5 @@ class AttestationRepository @Inject constructor(
 
     override fun getLastStampedTime(source: Source): Single<Long> =
         attestationDatabaseDataSource.getLastAttestation(source.toDatabaseModel())
-            .map { it.dateEnd }
+            .map { it?.dateEnd ?: throw NoAttestationException(source) }
 }

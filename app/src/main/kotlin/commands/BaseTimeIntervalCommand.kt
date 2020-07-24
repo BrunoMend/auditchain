@@ -3,7 +3,6 @@ package commands
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import domain.exception.MaxTimeIntervalExceededException
 import domain.model.AttestationConfiguration
 import domain.model.Source
 import domain.usecase.GetLastStampedTime
@@ -67,14 +66,6 @@ abstract class BaseTimeIntervalCommand(
         if (startAt >= finishIn) {
             println("There is no data to stamp now.")
             return
-        }
-    }
-
-    override fun printProcessError(error: Throwable?) {
-        when (error) {
-            is MaxTimeIntervalExceededException ->
-                printMsg("You have exceeded the maximum time interval")
-            else -> super.printProcessError(error)
         }
     }
 }

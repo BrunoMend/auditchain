@@ -1,15 +1,17 @@
 package domain.usecase
 
 import domain.datarepository.TimestampDataRepository
-import io.reactivex.rxjava3.core.Single
+import domain.model.Attestation
+import io.reactivex.rxjava3.core.Completable
 import javax.inject.Inject
 
+@Deprecated("done directly in the data source")
 class VerifyIsOtsCompletelyUpdated @Inject constructor(
     private val timestampDataRepository: TimestampDataRepository
-) : SingleUseCase<Boolean, VerifyIsOtsCompletelyUpdated.Request>() {
+) : CompletableUseCase<VerifyIsOtsCompletelyUpdated.Request>() {
 
-    override fun getRawSingle(request: Request): Single<Boolean> =
-        timestampDataRepository.verifyIsOtsCompletelyUpdated(request.otsData)
+    override fun getRawCompletable(request: Request): Completable =
+        timestampDataRepository.verifyIsOtsCompletelyUpdated(request.attestation)
 
-    data class Request(val otsData: ByteArray)
+    data class Request(val attestation: Attestation)
 }

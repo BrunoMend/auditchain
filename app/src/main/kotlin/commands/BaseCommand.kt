@@ -3,6 +3,8 @@ package commands
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import domain.exception.ExpectedException
+import domain.exception.className
 
 abstract class BaseCommand : CliktCommand() {
     private val verbose: Boolean
@@ -17,11 +19,14 @@ abstract class BaseCommand : CliktCommand() {
         if (verbose) printMsg(msg)
     }
 
-    protected open fun printProcessCompleted() {
-        printMsg("Process completed")
+    protected fun Throwable.printError() {
+        when (this) {
+            is ExpectedException -> printMsg(this.message!!)
+            else -> printMsg("Unexpected error: ${this.className} :: ${this.message}")
+        }
     }
 
-    protected open fun printProcessError(error: Throwable?) {
-        printMsg("Unexpected process error - $error")
+    protected open fun printProcessCompleted() {
+        printMsg("Process completed")
     }
 }

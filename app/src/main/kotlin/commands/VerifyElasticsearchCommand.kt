@@ -1,9 +1,10 @@
 package commands
 
-import domain.exception.className
 import domain.model.AttestationConfiguration
 import domain.model.BlockchainPublication
+import domain.model.TimeInterval
 import domain.usecase.GetLastStampedTime
+import domain.usecase.UpdateAttestationsOtsData
 import domain.usecase.VerifyElasticsearchDataByInterval
 import domain.utility.UI_DATE_FORMAT
 import domain.utility.toDateFormat
@@ -12,31 +13,39 @@ import javax.inject.Inject
 class VerifyElasticsearchCommand @Inject constructor(
     attestationConfiguration: AttestationConfiguration,
     getLastStampedTime: GetLastStampedTime,
+    private val updateAttestationsOtsData: UpdateAttestationsOtsData,
     private val verifyElasticsearchDataByInterval: VerifyElasticsearchDataByInterval
 ) : BaseTimeIntervalCommand(attestationConfiguration, getLastStampedTime) {
 
     override fun run() {
-        verifyElasticsearchDataByInterval
-            .getObservable(VerifyElasticsearchDataByInterval.Request(startAt, finishIn))
-            .doOnSubscribe{ printVerbose("Verifying data from: $uiStartAt to $uiFinishIn") }
-            .doOnError { printProcessError(it) }
-            .doOnNext { result ->
-                if (result.isSuccess) printVerifySuccess(result.getOrThrow())
-                else printVerifyError(result.exceptionOrNull())
-            }
+        super.run()
+
+        updateAttestationsOtsData.getCompletable(Unit)
+            .doOnSubscribe { printVerbose("Updating OTS data from previous stamps...") }
+            .andThen(
+                verifyElasticsearchDataByInterval
+                    .getObservable(VerifyElasticsearchDataByInterval.Request(startAt, finishIn))
+                    .doOnSubscribe { printVerbose("Verifying data from: $uiStartAt to $uiFinishIn") }
+                    .doOnError { it.printError() }
+                    .doOnNext { result ->
+                        if (result.isSuccess) printVerifySuccess(result.getOrThrow())
+                        else result.exceptionOrNull()?.printError()
+                    })
+            .doOnComplete { printProcessCompleted() }
+            .doOnError { it.printError() }
+            .onErrorComplete()
             .blockingSubscribe()
     }
 
-    private fun printVerifySuccess(blockchainPublications: List<BlockchainPublication>){
+    private fun printVerifySuccess(result: Pair<TimeInterval, List<BlockchainPublication>>) {
+        val timeInterval = result.first
+        val blockchainPublications = result.second
+
         blockchainPublications.forEach {
             printMsg(
-                "${it.blockchain} attests that data exists from " +
+                "${it.blockchain} attests that data from interval $timeInterval was stamped at " +
                         it.datePublication.toDateFormat(UI_DATE_FORMAT)
             )
         }
-    }
-
-    private fun printVerifyError(error: Throwable?) {
-        printMsg("Fail to verify: ${error?.className ?: "Unexpected Error"}")
     }
 }

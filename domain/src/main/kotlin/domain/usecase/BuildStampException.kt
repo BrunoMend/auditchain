@@ -1,7 +1,7 @@
 package domain.usecase
 
 import domain.exception.AttestationAlreadyExistsException
-import domain.exception.NoDataException
+import domain.exception.NoDataToStampException
 import domain.exception.className
 import domain.model.*
 import io.reactivex.rxjava3.core.Single
@@ -16,7 +16,7 @@ class BuildStampException @Inject constructor(
             val now = System.currentTimeMillis()
 
             val isTimedOut: Boolean =
-                (request.exception is NoDataException &&
+                (request.exception is NoDataToStampException &&
                         now - request.timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis)
 
             val needsProcess: Boolean =

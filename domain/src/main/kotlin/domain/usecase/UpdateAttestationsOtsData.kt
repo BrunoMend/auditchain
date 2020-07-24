@@ -12,5 +12,5 @@ class UpdateAttestationsOtsData @Inject constructor(
     override fun getRawCompletable(request: Unit): Completable =
         getNotOtsUpdatedAttestations.getRawSingle(Unit)
             .flatMapObservable { Observable.fromIterable(it) }
-            .flatMapCompletable { updateOtsData.getCompletable(it) }
+            .flatMapCompletable { updateOtsData.getCompletable(UpdateOtsData.Request(it)) }
 }

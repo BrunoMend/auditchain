@@ -1,15 +1,16 @@
 package domain.usecase
 
 import domain.datarepository.TimestampDataRepository
-import io.reactivex.rxjava3.core.Single
+import domain.model.Attestation
+import io.reactivex.rxjava3.core.Completable
 import javax.inject.Inject
 
 class UpgradeOstData @Inject constructor(
     private val timestampDataRepository: TimestampDataRepository
-) : SingleUseCase<ByteArray, UpgradeOstData.Request>() {
+) : CompletableUseCase<UpgradeOstData.Request>() {
 
-    override fun getRawSingle(request: Request): Single<ByteArray> =
-        timestampDataRepository.upgradeOstData(request.otsData)
+    override fun getRawCompletable(request: Request): Completable =
+        timestampDataRepository.upgradeOstData(request.attestation)
 
-    data class Request(val otsData: ByteArray)
+    data class Request(val attestation: Attestation)
 }

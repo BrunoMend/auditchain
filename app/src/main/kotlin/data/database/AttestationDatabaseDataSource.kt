@@ -69,13 +69,13 @@ class AttestationDatabaseDataSource @Inject constructor(
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
 
-    fun getLastAttestation(source: SourceDM): Single<AttestationDM> =
+    fun getLastAttestation(source: SourceDM): Single<AttestationDM?> =
         Single.fromCallable {
             transaction {
                 AttestationDao
                     .find { TableAttestation.dataSource eq source }
                     .maxBy { it.dateEnd }
-                    ?.toDatabaseModel() ?: throw NoAttestationException("No attestation found to source $source")
+                    ?.toDatabaseModel()
             }
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
