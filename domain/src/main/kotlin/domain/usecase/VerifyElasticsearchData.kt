@@ -15,7 +15,7 @@ class VerifyElasticsearchData @Inject constructor(
     override fun getRawSingle(request: Request): Single<Result<Pair<TimeInterval, List<BlockchainPublication>>>> =
         Single.just(request.timeInterval)
             .flatMap { timeInterval ->
-                getAttestation.getRawSingle(GetAttestation.Request(Source.ELASTICSEARCH, timeInterval))
+                getAttestation.getSingle(GetAttestation.Request(Source.ELASTICSEARCH, timeInterval))
                     .flatMap { attestation ->
                         getElasticsearchData.getRawSingle(GetElasticsearchData.Request(timeInterval))
                             .flatMap { originalData ->

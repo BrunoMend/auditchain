@@ -11,9 +11,9 @@ class VerifyElasticsearchDataByInterval @Inject constructor(
 ) : ObservableUseCase<Result<Pair<TimeInterval, List<BlockchainPublication>>>, VerifyElasticsearchDataByInterval.Request>() {
 
     override fun getRawObservable(request: Request): Observable<Result<Pair<TimeInterval, List<BlockchainPublication>>>> =
-        getTimeIntervals.getSingle(GetTimeIntervals.Request(request.startAt, request.finishIn))
+        getTimeIntervals.getRawSingle(GetTimeIntervals.Request(request.startAt, request.finishIn))
             .flatMapObservable { Observable.fromIterable(it) }
-            .concatMapSingle { verifyElasticsearchData.getRawSingle(VerifyElasticsearchData.Request(it)) }
+            .concatMapSingle { verifyElasticsearchData.getSingle(VerifyElasticsearchData.Request(it)) }
 
     data class Request(val startAt: Long, val finishIn: Long)
 }
