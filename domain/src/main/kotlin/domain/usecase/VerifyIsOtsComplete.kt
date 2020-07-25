@@ -5,13 +5,12 @@ import domain.model.Attestation
 import io.reactivex.rxjava3.core.Completable
 import javax.inject.Inject
 
-@Deprecated("done directly in the data source")
-class VerifyIsOtsCompletelyUpdated @Inject constructor(
+class VerifyIsOtsComplete @Inject constructor(
     private val timestampDataRepository: TimestampDataRepository
-) : CompletableUseCase<VerifyIsOtsCompletelyUpdated.Request>() {
+) : CompletableUseCase<VerifyIsOtsComplete.Request>() {
 
     override fun getRawCompletable(request: Request): Completable =
-        timestampDataRepository.verifyIsOtsCompletelyUpdated(request.attestation)
+        timestampDataRepository.verifyIsOtsComplete(request.attestation)
 
     data class Request(val attestation: Attestation)
 }

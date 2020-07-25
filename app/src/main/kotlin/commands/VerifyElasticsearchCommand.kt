@@ -4,7 +4,7 @@ import domain.model.AttestationConfiguration
 import domain.model.BlockchainPublication
 import domain.model.TimeInterval
 import domain.usecase.GetLastStampedTime
-import domain.usecase.UpdateAttestationsOtsData
+import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.usecase.VerifyElasticsearchDataByInterval
 import domain.utility.UI_DATE_FORMAT
 import domain.utility.toDateFormat
@@ -13,14 +13,14 @@ import javax.inject.Inject
 class VerifyElasticsearchCommand @Inject constructor(
     attestationConfiguration: AttestationConfiguration,
     getLastStampedTime: GetLastStampedTime,
-    private val updateAttestationsOtsData: UpdateAttestationsOtsData,
+    private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
     private val verifyElasticsearchDataByInterval: VerifyElasticsearchDataByInterval
 ) : BaseTimeIntervalCommand(attestationConfiguration, getLastStampedTime) {
 
     override fun run() {
         super.run()
 
-        updateAttestationsOtsData.getCompletable(Unit)
+        updateAllIncompleteAttestationsOtsData.getCompletable(Unit)
             .doOnSubscribe { printVerbose("Updating OTS data from previous stamps...") }
             .andThen(
                 verifyElasticsearchDataByInterval

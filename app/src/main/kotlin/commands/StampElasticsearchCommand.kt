@@ -5,7 +5,7 @@ import domain.model.AttestationConfiguration
 import domain.usecase.GetLastStampedTime
 import domain.usecase.ProcessAllElasticsearchStampExceptions
 import domain.usecase.StampElasticsearchDataByInterval
-import domain.usecase.UpdateAttestationsOtsData
+import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.utility.UI_DATE_FORMAT
 import domain.utility.toDateFormat
 import io.reactivex.rxjava3.core.Observable
@@ -14,7 +14,7 @@ import javax.inject.Inject
 class StampElasticsearchCommand @Inject constructor(
     attestationConfiguration: AttestationConfiguration,
     getLastStampedTime: GetLastStampedTime,
-    private val updateAttestationsOtsData: UpdateAttestationsOtsData,
+    private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
     private val processAllElasticsearchStampExceptions: ProcessAllElasticsearchStampExceptions,
     private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval
 ) : BaseTimeIntervalCommand(attestationConfiguration, getLastStampedTime) {
@@ -22,7 +22,7 @@ class StampElasticsearchCommand @Inject constructor(
     override fun run() {
         super.run()
 
-        updateAttestationsOtsData.getCompletable(Unit)
+        updateAllIncompleteAttestationsOtsData.getCompletable(Unit)
             .doOnSubscribe { printVerbose("Updating OTS data from previous stamps...") }
             .andThen(
                 Observable.concat(

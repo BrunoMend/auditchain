@@ -6,7 +6,6 @@ import data.database.model.AttestationDM
 import data.database.model.SourceDM
 import data.mappers.toDatabaseModel
 import domain.di.IOScheduler
-import domain.exception.NoAttestationException
 import domain.utility.synchronize
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
@@ -29,7 +28,7 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dataSource = attestationDM.source
                     dateTimestamp = attestationDM.dateTimestamp
                     otsData = ExposedBlob(attestationDM.otsData)
-                    isOtsUpdated = attestationDM.isOtsUpdated
+                    isOtsComplete = attestationDM.isOtsComplete
                 }
             }
         }.synchronize(databaseSemaphore)
@@ -46,16 +45,16 @@ class AttestationDatabaseDataSource @Inject constructor(
                     attestationDM.source
                 )).apply {
                     otsData = ExposedBlob(attestationDM.otsData)
-                    isOtsUpdated = attestationDM.isOtsUpdated
+                    isOtsComplete = attestationDM.isOtsComplete
                 }
             }
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
 
-    fun getNotOtsUpdatedAttestations(): Single<List<AttestationDM>> =
+    fun getIncompleteOtsAttestations(): Single<List<AttestationDM>> =
         Single.fromCallable {
             transaction {
-                AttestationDao.find { TableAttestation.isOtsUpdated eq false }
+                AttestationDao.find { TableAttestation.isOtsComplete eq false }
                     .map { it.toDatabaseModel() }
             }
         }.synchronize(databaseSemaphore)

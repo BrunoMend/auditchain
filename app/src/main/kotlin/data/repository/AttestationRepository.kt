@@ -21,10 +21,16 @@ class AttestationRepository @Inject constructor(
 
     override fun getAttestation(timeInterval: TimeInterval, source: Source): Single<Attestation> =
         attestationDatabaseDataSource.getAttestation(timeInterval.startAt, timeInterval.finishIn, source.toDatabaseModel())
+            .onErrorResumeNext { error ->
+                when(error) {
+                    is NoSuchElementException -> Single.error(NoAttestationException(source, timeInterval))
+                    else -> Single.error(error)
+                }
+            }
             .map { it.toDomainModel() }
 
-    override fun getNotOtsUpdatedAttestations(): Single<List<Attestation>> =
-        attestationDatabaseDataSource.getNotOtsUpdatedAttestations()
+    override fun getIncompleteOtsAttestations(): Single<List<Attestation>> =
+        attestationDatabaseDataSource.getIncompleteOtsAttestations()
             .map { it.map { it.toDomainModel() } }
 
     override fun updateOtsData(attestation: Attestation): Completable =

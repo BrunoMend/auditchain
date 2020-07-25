@@ -5,6 +5,6 @@ data class Attestation(
     val source: Source,
     val dateTimestamp: Long,
     var otsData: ByteArray,
-    var isOtsUpdated: Boolean = false,
+    var isOtsComplete: Boolean = false,
     val id: Long? = null
 )

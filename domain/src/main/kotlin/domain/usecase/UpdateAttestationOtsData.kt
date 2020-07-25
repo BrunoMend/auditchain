@@ -4,14 +4,14 @@ import domain.model.Attestation
 import io.reactivex.rxjava3.core.Completable
 import javax.inject.Inject
 
-class UpdateOtsData @Inject constructor(
+class UpdateAttestationOtsData @Inject constructor(
     private val upgradeOstData: UpgradeOstData,
     private val saveUpdatedOtsData: SaveUpdatedOtsData
-) : CompletableUseCase<UpdateOtsData.Request>() {
+) : CompletableUseCase<UpdateAttestationOtsData.Request>() {
 
     override fun getRawCompletable(request: Request): Completable =
-        upgradeOstData.getCompletable(UpgradeOstData.Request(request.attestation))
-            .andThen(saveUpdatedOtsData.getRawCompletable(SaveUpdatedOtsData.Request(request.attestation)))
+        upgradeOstData.getSingle(UpgradeOstData.Request(request.attestation))
+            .flatMapCompletable { saveUpdatedOtsData.getRawCompletable(SaveUpdatedOtsData.Request(it)) }
 
     data class Request(val attestation: Attestation)
 }

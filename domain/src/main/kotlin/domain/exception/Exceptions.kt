@@ -7,7 +7,7 @@ import java.util.logging.Level
 
 abstract class ExpectedException(message: String, val loggerLevel: Level) : Exception(message)
 
-class DataNotMatchOriginalException(attestation: Attestation) :
+class InvalidOriginalDataException(attestation: Attestation) :
     ExpectedException(
         "Original data doesn't match to ots data from interval ${attestation.timeInterval} and source ${attestation.source}",
         Level.SEVERE
@@ -31,8 +31,11 @@ class AttestationAlreadyExistsException(attestation: Attestation) :
         Level.INFO
     )
 
-class NoAttestationException(source: Source) :
-    ExpectedException("No attestation found from source $source", Level.INFO)
+class NoAttestationException(source: Source, timeInterval: TimeInterval? = null) :
+    ExpectedException(
+        "No attestation found from source $source" + if (timeInterval != null) " and interval $timeInterval" else "",
+        Level.INFO
+    )
 
 class NoDataToStampException(timeInterval: TimeInterval, source: Source) :
     ExpectedException("No data to stamp from interval $timeInterval and source $source", Level.INFO)
