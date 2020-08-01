@@ -1,68 +1,57 @@
 package data.database
 
-import data.SemaphoreDataSource
-import data.database.infrastructure.Database
 import data.database.infrastructure.TableStampException
-import data.database.infrastructure.boolValue
-import data.database.infrastructure.toBoolean
+import data.database.infrastructure.dao.StampExceptionDao
+import data.database.model.SourceDM
 import data.database.model.StampExceptionDM
+import data.mappers.toDatabaseModel
 import domain.di.IOScheduler
+import domain.utility.synchronize
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.core.Single
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.transactions.transaction
 import javax.inject.Inject
 
 class StampExceptionDatabaseDataSource @Inject constructor(
-    @IOScheduler private val ioScheduler: Scheduler,
-    private val database: Database
-) : SemaphoreDataSource() {
+    @IOScheduler private val ioScheduler: Scheduler
+) : BaseDatabaseDataSource() {
 
     fun insertStampException(stampExceptionDM: StampExceptionDM): Completable =
-        database.upinsert(
-            "INSERT INTO ${TableStampException.TABLE_NAME} " +
-                    "( " +
-                    "${TableStampException.DATE_START}, " +
-                    "${TableStampException.DATE_END}, " +
-                    "${TableStampException.SOURCE}, " +
-                    "${TableStampException.DATE_EXCEPTION}, " +
-                    "${TableStampException.EXCEPTION}, " +
-                    "${TableStampException.PROCESSED} " +
-                    ") " +
-                    "VALUES ( " +
-                    "${stampExceptionDM.dateStart}, " +
-                    "${stampExceptionDM.dateEnd}, " +
-                    "'${stampExceptionDM.source}', " +
-                    "${stampExceptionDM.dateException}, " +
-                    "'${stampExceptionDM.exception}', " +
-                    "${stampExceptionDM.processed.boolValue} " +
-                    ")"
-        ).subscribeOn(ioScheduler)
-            .synchronize()
+        Completable.fromAction {
+            transaction {
+                StampExceptionDao.new {
+                    dateStart = stampExceptionDM.dateStart
+                    dateEnd = stampExceptionDM.dateEnd
+                    dataSource = stampExceptionDM.source
+                    exception = stampExceptionDM.exception
+                    dateException = stampExceptionDM.dateException
+                    processed = stampExceptionDM.processed
+                }
+            }
+        }.subscribeOn(ioScheduler)
+            .synchronize(databaseSemaphore)
 
-    fun getUnprocessedStampExceptions(source: String): Single<List<StampExceptionDM>> =
-        database.select(
-            "SELECT * FROM ${TableStampException.TABLE_NAME} " +
-                    "WHERE ${TableStampException.PROCESSED} = 0 " +
-                    "AND ${TableStampException.SOURCE} = '${source}'"
-        ).map { it.map { it.toStampExceptionDM() } }
+    fun getUnprocessedStampExceptions(source: SourceDM): Single<List<StampExceptionDM>> =
+        Single.fromCallable {
+            transaction {
+                StampExceptionDao.find {
+                    (TableStampException.dataSource eq source) and
+                            (TableStampException.processed eq false)
+                }.map { it.toDatabaseModel() }
+            }
+        }.subscribeOn(ioScheduler)
+            .synchronize(databaseSemaphore)
 
     fun setAsProcessed(stampExceptionDM: StampExceptionDM): Completable =
-        database.upinsert(
-            "UPDATE ${TableStampException.TABLE_NAME} " +
-                    "SET ${TableStampException.PROCESSED} = 1 " +
-                    "WHERE ${TableStampException.DATE_START} = ${stampExceptionDM.dateStart} " +
-                    "AND ${TableStampException.DATE_END} = ${stampExceptionDM.dateEnd} " +
-                    "AND ${TableStampException.SOURCE} = '${stampExceptionDM.source}' " +
-                    "AND ${TableStampException.DATE_EXCEPTION} = '${stampExceptionDM.dateException}'"
-        )
+        Completable.fromAction {
+            transaction {
+                StampExceptionDao.findById(stampExceptionDM.id ?: throw NullPointerException())?.apply {
+                    processed = true
+                } ?: throw NullPointerException()
+            }
+        }.subscribeOn(ioScheduler)
+            .synchronize(databaseSemaphore)
 
-    private fun HashMap<String, Any>.toStampExceptionDM() =
-        StampExceptionDM(
-            this[TableStampException.DATE_START] as Long,
-            this[TableStampException.DATE_END] as Long,
-            this[TableStampException.SOURCE] as String,
-            this[TableStampException.EXCEPTION] as String,
-            this[TableStampException.DATE_EXCEPTION] as Long,
-            (this[TableStampException.PROCESSED] as Int).toBoolean()
-        )
 }

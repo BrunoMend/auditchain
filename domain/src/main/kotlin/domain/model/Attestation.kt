@@ -5,5 +5,6 @@ data class Attestation(
     val source: Source,
     val dateTimestamp: Long,
     val otsData: ByteArray,
-    val blockchainPublications: List<BlockchainPublication> = listOf()
+    val isOtsUpdated: Boolean = false,
+    val id: Long? = null
 )

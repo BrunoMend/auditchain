@@ -1,7 +1,7 @@
 package data.mappers
 
-import data.database.infrastructure.EnumSource
 import data.database.model.AttestationDM
+import data.database.model.SourceDM
 import data.database.model.StampExceptionDM
 import domain.model.Attestation
 import domain.model.Source
@@ -11,22 +11,25 @@ import domain.model.TimeInterval
 fun AttestationDM.toDomainModel(): Attestation =
     Attestation(
         TimeInterval(dateStart, dateEnd),
-        sourceToDomainModel(source),
+        source.toDomainModel(),
         dateTimestamp,
-        otsData
+        otsData,
+        isOtsUpdated,
+        id
     )
 
 fun StampExceptionDM.toDomainModel(): StampException =
     StampException(
         TimeInterval(dateStart, dateEnd),
-        sourceToDomainModel(source),
+        source.toDomainModel(),
         exception,
-        dateException
+        dateException,
+        processed,
+        id
     )
 
-fun sourceToDomainModel(source: String): Source =
-    when (source) {
-        EnumSource.ELASTICSEARCH -> Source.ELASTICSEARCH
-        EnumSource.POSTEGRES -> Source.POSTGRES
-        else -> throw IllegalArgumentException("Source not mapped: $source")
+fun SourceDM.toDomainModel(): Source =
+    when (this) {
+        SourceDM.ELASTICSEARCH -> Source.ELASTICSEARCH
+        SourceDM.POSTGRES -> Source.POSTGRES
     }
