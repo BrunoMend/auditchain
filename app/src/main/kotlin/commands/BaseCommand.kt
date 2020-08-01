@@ -4,7 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import domain.exception.ExpectedException
-import domain.exception.className
+import domain.exception.errorName
 
 abstract class BaseCommand : CliktCommand() {
     private val verbose: Boolean
@@ -22,7 +22,7 @@ abstract class BaseCommand : CliktCommand() {
     protected fun Throwable.printError() {
         when (this) {
             is ExpectedException -> printMsg(this.message!!)
-            else -> printMsg("Unexpected error: ${this.className} :: ${this.message}")
+            else -> printMsg("Unexpected error: ${this.errorName} :: ${this.message}")
         }
     }
 

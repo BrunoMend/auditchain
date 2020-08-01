@@ -2,7 +2,7 @@ package domain.usecase
 
 import domain.exception.AttestationAlreadyExistsException
 import domain.exception.NoDataToStampException
-import domain.exception.className
+import domain.exception.errorName
 import domain.model.*
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
@@ -25,7 +25,7 @@ class BuildStampException @Inject constructor(
             StampException(
                 request.timeInterval,
                 request.source,
-                request.exception.className,
+                request.exception.errorName,
                 now,
                 !needsProcess
             )
