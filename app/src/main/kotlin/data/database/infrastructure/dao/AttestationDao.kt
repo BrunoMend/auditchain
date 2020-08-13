@@ -14,4 +14,5 @@ class AttestationDao (id: EntityID<Long>) : LongEntity(id) {
     var dateTimestamp by TableAttestation.dateTimestamp
     var otsData by TableAttestation.otsData
     var isOtsComplete by TableAttestation.isOtsComplete
+    var previousAttestationSignature by TableAttestation.previousAttestationSignature
 }

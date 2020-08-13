@@ -13,6 +13,7 @@ object TableAttestation: LongIdTable() {
     val dateTimestamp = long("date_timestamp")
     val otsData = blob("ots_data")
     val isOtsComplete = bool("is_ots_complete")
+    val previousAttestationSignature = blob("previous_attestation_signature").nullable()
     init {
         index(true, dateStart, dateEnd, dataSource)
     }

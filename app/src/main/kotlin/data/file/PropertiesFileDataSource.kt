@@ -30,7 +30,8 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                     it.getProperty("delay").toLong(),
                     it.getProperty("tryAgainTimeout").toLong(),
                     it.getProperty("maxTimeInterval").toLong(),
-                    it.getProperty("attestationFilePath")
+                    it.getProperty("publicKey"),
+                    it.getProperty("privateKey")
                 )
             }
 }

@@ -1,6 +1,8 @@
 package domain.model
 
-enum class Source {
+import java.io.Serializable
+
+enum class Source: Serializable {
     ELASTICSEARCH,
     POSTGRES
 }

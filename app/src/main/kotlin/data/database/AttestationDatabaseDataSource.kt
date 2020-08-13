@@ -29,6 +29,8 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dateTimestamp = attestationDM.dateTimestamp
                     otsData = ExposedBlob(attestationDM.otsData)
                     isOtsComplete = attestationDM.isOtsComplete
+                    previousAttestationSignature =
+                        attestationDM.previousAttestationSignature?.let { ExposedBlob(it) }
                 }
             }
         }.synchronize(databaseSemaphore)

@@ -15,6 +15,7 @@ fun Attestation.toDatabaseModel(): AttestationDM =
         dateTimestamp,
         otsData,
         isOtsComplete,
+        previousAttestationSignature,
         id
     )
 

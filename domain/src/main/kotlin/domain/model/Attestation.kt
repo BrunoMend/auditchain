@@ -6,5 +6,6 @@ data class Attestation(
     val dateTimestamp: Long,
     var otsData: ByteArray,
     var isOtsComplete: Boolean = false,
+    val previousAttestationSignature: ByteArray? = null,
     val id: Long? = null
 )
