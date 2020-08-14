@@ -3,6 +3,7 @@ package domain.usecase
 import domain.model.Attestation
 import domain.model.Source
 import domain.model.TimeInterval
+import domain.model.TimestampData
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
@@ -22,14 +23,15 @@ class StampElasticsearchData @Inject constructor(
                     .getCompletable(ValidateNoAttestationExists.Request(Source.ELASTICSEARCH, timeInterval))
                     .andThen(getElasticsearchData.getRawSingle(GetElasticsearchData.Request(timeInterval)))
                     .flatMap { data ->
-                        stampData.getRawSingle(StampData.Request(data))
-                            .flatMap { otsData ->
+                        stampData.getRawSingle(StampData.Request(TimestampData(timeInterval, data)))
+                            .flatMap { timestampResult ->
                                 val attestation =
                                     Attestation(
                                         timeInterval,
                                         Source.ELASTICSEARCH,
                                         System.currentTimeMillis(),
-                                        otsData
+                                        timestampResult.dataSignature,
+                                        timestampResult.otsData
                                     )
                                 saveAttestation.getRawCompletable(SaveAttestation.Request(attestation))
                                     .andThen(Single.just(attestation))

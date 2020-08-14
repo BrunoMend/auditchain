@@ -13,9 +13,9 @@ fun Attestation.toDatabaseModel(): AttestationDM =
         timeInterval.finishIn,
         source.toDatabaseModel(),
         dateTimestamp,
+        dataSignature,
         otsData,
         isOtsComplete,
-        previousAttestationSignature,
         id
     )
 

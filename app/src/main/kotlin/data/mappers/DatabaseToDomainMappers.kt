@@ -13,9 +13,9 @@ fun AttestationDM.toDomainModel(): Attestation =
         TimeInterval(dateStart, dateEnd),
         source.toDomainModel(),
         dateTimestamp,
+        dataSignature,
         otsData,
         isOtsComplete,
-        previousAttestationSignature,
         id
     )
 
