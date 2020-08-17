@@ -8,5 +8,5 @@ interface TimestampDataRepository {
     fun stampData(data: ByteArray): Single<ByteArray>
     fun upgradeOstData(attestation: Attestation): Single<Attestation>
     fun checkIsOtsComplete(attestation: Attestation): Single<Attestation>
-    fun verifyStamp(originalData: ByteArray, attestation: Attestation): Single<List<BlockchainPublication>>
+    fun verifyStamp(attestation: Attestation): Single<List<BlockchainPublication>>
 }

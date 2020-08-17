@@ -31,8 +31,8 @@ class TimestampRepository @Inject constructor(
         openTimestampsDataSource.verifyIsOtsComplete(attestation.otsData)
             .map { attestation.apply { isOtsComplete = it } }
 
-    override fun verifyStamp(originalData: ByteArray, attestation: Attestation): Single<List<BlockchainPublication>> =
-        openTimestampsDataSource.verify(originalData, attestation.otsData)
+    override fun verifyStamp(attestation: Attestation): Single<List<BlockchainPublication>> =
+        openTimestampsDataSource.verify(attestation.dataSignature, attestation.otsData)
             .onErrorResumeNext { error ->
                 if (error is DataNotMatchOriginalException) Single.error(InvalidOriginalDataException(attestation))
                 else Single.error(error)

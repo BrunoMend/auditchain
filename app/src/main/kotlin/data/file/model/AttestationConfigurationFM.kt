@@ -5,6 +5,6 @@ data class AttestationConfigurationFM (
     val delay: Long,
     val tryAgainTimeout: Long,
     val maxTimeInterval: Long,
-    val privateKeyFilePath: String,
-    val publicKeyFilePath: String
+    val signingKeyFilePath: String,
+    val verifyKeyFilePath: String
 )

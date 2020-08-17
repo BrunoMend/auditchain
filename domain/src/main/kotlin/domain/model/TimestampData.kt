@@ -1,19 +1,23 @@
 package domain.model
 
+import domain.exception.InvalidDataSignatureException
 import domain.utility.toByteArray
-import org.abstractj.kalium.keys.PrivateKey
-import org.abstractj.kalium.keys.PublicKey
 import org.abstractj.kalium.keys.SigningKey
 import org.abstractj.kalium.keys.VerifyKey
 import java.io.Serializable
+import java.lang.RuntimeException
 
 data class TimestampData(
     val timeInterval: TimeInterval,
     val data: ByteArray?
 ) : Serializable {
-    fun sing(privateKey: PrivateKey): ByteArray =
-        SigningKey(privateKey.toBytes()).sign(this.toByteArray())
+    fun sign(signingKey: SigningKey): ByteArray =
+        signingKey.sign(this.toByteArray())
 
-    fun verifySignature(publicKey: PublicKey, signedData: ByteArray): Boolean =
-        VerifyKey(publicKey.toBytes()).verify(this.toByteArray(), signedData)
+    fun verifySignature(verifyKey: VerifyKey, dataSignature: ByteArray): Boolean =
+        try {
+            verifyKey.verify(this.toByteArray(), dataSignature)
+        } catch (error: RuntimeException) {
+            throw InvalidDataSignatureException()
+        }
 }

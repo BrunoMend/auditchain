@@ -22,13 +22,13 @@ class ConfigurationRepository @Inject constructor(
         propertiesFileDataSource.getAttestationConfiguration()
             .flatMap { attestationConfigurationFM ->
                 Single.zip(
-                    objectFileDataSource.read(attestationConfigurationFM.privateKeyFilePath, ""),
-                    objectFileDataSource.read(attestationConfigurationFM.publicKeyFilePath, ""),
-                    BiFunction<ByteArray, ByteArray, Pair<ByteArray, ByteArray>> { privateKeyByteArray, publicKeyByteArray ->
-                        Pair(privateKeyByteArray, publicKeyByteArray)
+                    objectFileDataSource.read(attestationConfigurationFM.signingKeyFilePath, ""),
+                    objectFileDataSource.read(attestationConfigurationFM.verifyKeyFilePath, ""),
+                    BiFunction<ByteArray, ByteArray, Pair<ByteArray, ByteArray>> { signingKeyByteArray, verifyKeyByteArray ->
+                        Pair(signingKeyByteArray, verifyKeyByteArray)
                     }
-                ).map { keypair ->
-                    attestationConfigurationFM.toDomain(keypair.first, keypair.second)
+                ).map { keys ->
+                    attestationConfigurationFM.toDomain(keys.first, keys.second)
                 }
             }
 }

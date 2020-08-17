@@ -13,7 +13,7 @@ class StampData @Inject constructor(
 ) : SingleUseCase<TimestampResult, StampData.Request>() {
 
     override fun getRawSingle(request: Request): Single<TimestampResult> {
-        val dataSignature = request.timestampData.sing(attestationConfiguration.privateKey)
+        val dataSignature = request.timestampData.sign(attestationConfiguration.signingKey)
         return timestampDataRepository.stampData(dataSignature)
             .flatMap { Single.just(TimestampResult(dataSignature, it)) }
     }

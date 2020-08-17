@@ -1,15 +1,15 @@
 package domain.model
 
-import org.abstractj.kalium.keys.PrivateKey
-import org.abstractj.kalium.keys.PublicKey
+import org.abstractj.kalium.keys.SigningKey
+import org.abstractj.kalium.keys.VerifyKey
 
 data class AttestationConfiguration(
     val frequency: Long,
     val delay: Long,
     val tryAgainTimeout: Long,
     val maxTimeInterval: Long,
-    val privateKey: PrivateKey,
-    val publicKey: PublicKey
+    val signingKey: SigningKey,
+    val verifyKey: VerifyKey
 ) {
     val frequencyMillis: Long
         get() = frequency * 60000
