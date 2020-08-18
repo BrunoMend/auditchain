@@ -14,10 +14,12 @@ data class TimestampData(
     fun sign(signingKey: SigningKey): ByteArray =
         signingKey.sign(this.toByteArray())
 
-    fun verifySignature(verifyKey: VerifyKey, dataSignature: ByteArray): Boolean =
+    fun verifySignature(verifyKey: VerifyKey, dataSignature: ByteArray) {
         try {
-            verifyKey.verify(this.toByteArray(), dataSignature)
+            if (!verifyKey.verify(this.toByteArray(), dataSignature))
+                throw InvalidDataSignatureException()
         } catch (error: RuntimeException) {
             throw InvalidDataSignatureException()
         }
+    }
 }
