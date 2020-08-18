@@ -1,10 +1,12 @@
 package domain.datarepository
 
+import domain.model.Attestation
 import domain.model.BlockchainPublication
 import io.reactivex.rxjava3.core.Single
 
 interface TimestampDataRepository {
     fun stampData(data: ByteArray): Single<ByteArray>
-    fun performUpdates(otsData: ByteArray): Single<Boolean>
-    fun verifyStamp(originalData: ByteArray, otsData: ByteArray): Single<List<BlockchainPublication>>
+    fun upgradeOstData(attestation: Attestation): Single<Attestation>
+    fun checkIsOtsComplete(attestation: Attestation): Single<Attestation>
+    fun verifyStamp(originalData: ByteArray, attestation: Attestation): Single<List<BlockchainPublication>>
 }

@@ -21,6 +21,14 @@ class StampExceptionDatabaseDataSource @Inject constructor(
     fun insertStampException(stampExceptionDM: StampExceptionDM): Completable =
         Completable.fromAction {
             transaction {
+                StampExceptionDao.find{
+                    (TableStampException.dataSource eq stampExceptionDM.source) and
+                            (TableStampException.dateStart eq stampExceptionDM.dateStart) and
+                            (TableStampException.dateEnd eq stampExceptionDM.dateEnd) and
+                            (TableStampException.processed eq false)
+                }.forEach {
+                    it.processed = true
+                }
                 StampExceptionDao.new {
                     dateStart = stampExceptionDM.dateStart
                     dateEnd = stampExceptionDM.dateEnd
@@ -30,8 +38,8 @@ class StampExceptionDatabaseDataSource @Inject constructor(
                     processed = stampExceptionDM.processed
                 }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun getUnprocessedStampExceptions(source: SourceDM): Single<List<StampExceptionDM>> =
         Single.fromCallable {
@@ -41,8 +49,8 @@ class StampExceptionDatabaseDataSource @Inject constructor(
                             (TableStampException.processed eq false)
                 }.map { it.toDatabaseModel() }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun setAsProcessed(stampExceptionDM: StampExceptionDM): Completable =
         Completable.fromAction {
@@ -51,7 +59,6 @@ class StampExceptionDatabaseDataSource @Inject constructor(
                     processed = true
                 } ?: throw NullPointerException()
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
-
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 }

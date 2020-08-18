@@ -7,7 +7,7 @@ import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class PropertiesFileDataSource @Inject constructor(private val propertiesStorage: PropertiesStorage) {
-    private val configFilePath = "C:\\ots\\config.properties" //TODO auto get file path
+    private val configFilePath = "C:\\ots\\config.properties" //TODO \\config.properties
 
     fun getElasticsearchConfiguration(): Single<ElasticsearchConfigurationFM> =
         propertiesStorage.getProperties(configFilePath)
@@ -28,6 +28,8 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                 AttestationConfigurationFM(
                     it.getProperty("frequency").toLong(),
                     it.getProperty("delay").toLong(),
+                    it.getProperty("tryAgainTimeout").toLong(),
+                    it.getProperty("maxTimeInterval").toLong(),
                     it.getProperty("attestationFilePath")
                 )
             }

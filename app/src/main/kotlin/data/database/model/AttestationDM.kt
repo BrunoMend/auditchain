@@ -6,6 +6,6 @@ data class AttestationDM(
     val source: SourceDM,
     val dateTimestamp: Long,
     val otsData: ByteArray,
-    val isOtsUpdated: Boolean = false,
+    val isOtsComplete: Boolean = false,
     val id: Long? = null
 )

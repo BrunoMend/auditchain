@@ -14,7 +14,7 @@ fun AttestationDao.toDatabaseModel(): AttestationDM =
         dataSource,
         dateTimestamp,
         otsData.bytes,
-        isOtsUpdated,
+        isOtsComplete,
         id.value
     )
 

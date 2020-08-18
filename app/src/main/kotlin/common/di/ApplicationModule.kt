@@ -10,7 +10,6 @@ import domain.di.ComputationScheduler
 import domain.di.IOScheduler
 import domain.model.AttestationConfiguration
 import domain.model.ElasticsearchConfiguration
-import domain.utility.Logger
 import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory
 import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -29,14 +28,6 @@ class ApplicationModule {
     @Provides
     @ComputationScheduler
     fun computationScheduler(): Scheduler = Schedulers.computation()
-
-    @Provides
-    @Singleton
-    fun logger() = object : Logger {
-        override fun log(msg: String) {
-            println(msg)
-        }
-    }
 
     @Provides
     @Singleton

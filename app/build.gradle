@@ -19,3 +19,7 @@ dependencies {
     implementation project(':domain')
     implementation project(':timestamp')
 }
+
+configurations {
+    all*.exclude group: 'org.slf4j'
+}

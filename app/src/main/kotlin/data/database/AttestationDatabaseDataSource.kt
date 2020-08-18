@@ -28,42 +28,56 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dataSource = attestationDM.source
                     dateTimestamp = attestationDM.dateTimestamp
                     otsData = ExposedBlob(attestationDM.otsData)
-                    isOtsUpdated = attestationDM.isOtsUpdated
+                    isOtsComplete = attestationDM.isOtsComplete
                 }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun updateOtsData(attestationDM: AttestationDM): Completable =
         Completable.fromAction {
             transaction {
-                getAttestationDao(
+                (attestationDM.id?.let {
+                    AttestationDao.findById(it)
+                } ?: getAttestationDao(
                     attestationDM.dateStart,
                     attestationDM.dateEnd,
                     attestationDM.source
-                ).apply {
+                )).apply {
                     otsData = ExposedBlob(attestationDM.otsData)
+                    isOtsComplete = attestationDM.isOtsComplete
                 }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
-    fun getAllAttestations(): Single<List<AttestationDM>> =
+    fun getIncompleteOtsAttestations(): Single<List<AttestationDM>> =
         Single.fromCallable {
             transaction {
-                AttestationDao.all()
+                AttestationDao.find { TableAttestation.isOtsComplete eq false }
                     .map { it.toDatabaseModel() }
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     fun getAttestation(dateStart: Long, dateEnd: Long, source: SourceDM): Single<AttestationDM> =
         Single.fromCallable {
             transaction {
                 getAttestationDao(dateStart, dateEnd, source).toDatabaseModel()
             }
-        }.subscribeOn(ioScheduler)
-            .synchronize(databaseSemaphore)
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
+
+    fun getLastAttestation(source: SourceDM): Single<AttestationDM?> =
+        Single.fromCallable {
+            transaction {
+                AttestationDao
+                    .find { TableAttestation.dataSource eq source }
+                    .maxBy { it.dateEnd }
+                    ?.toDatabaseModel()
+            }
+        }.synchronize(databaseSemaphore)
+            .subscribeOn(ioScheduler)
 
     // must be called within a transaction
     private fun getAttestationDao(dateStart: Long, dateEnd: Long, source: SourceDM): AttestationDao =
