@@ -17,10 +17,6 @@ class OpenTimestampsDataSource @Inject constructor(
     @IOScheduler private val ioScheduler: Scheduler,
     @ComputationScheduler private val computationScheduler: Scheduler
 ) {
-    //TODO
-    // change OpSHA256 to OpKECCAK256
-    // getting java.security.NoSuchAlgorithmException: keccak256 MessageDigest not available
-
     fun stamp(data: ByteArray): Single<ByteArray> =
         Single.fromCallable {
             val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), data)

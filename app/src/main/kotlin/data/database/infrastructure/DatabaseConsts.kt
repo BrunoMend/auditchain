@@ -14,6 +14,7 @@ object TableAttestation: LongIdTable() {
     val dataSignature = blob("data_signature")
     val otsData = blob("ots_data")
     val isOtsComplete = bool("is_ots_complete")
+    val sourceParams = varchar("source_params", 255).nullable()
     init {
         index(true, dateStart, dateEnd, dataSource)
     }
@@ -26,4 +27,5 @@ object TableStampException: LongIdTable() {
     val exception = varchar("exception", 150)
     val dateException = long("date_exception")
     val processed = bool("processed")
+    val sourceParams = varchar("source_params", 255).nullable()
 }

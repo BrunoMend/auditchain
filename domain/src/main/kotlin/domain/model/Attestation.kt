@@ -7,5 +7,6 @@ data class Attestation(
     val dataSignature: ByteArray,
     var otsData: ByteArray,
     var isOtsComplete: Boolean = false,
+    val sourceParams: Map<SourceParam, String>? = null,
     val id: Long? = null
 )

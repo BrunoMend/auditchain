@@ -2,6 +2,7 @@ package data.database
 
 import data.database.infrastructure.TableAttestation
 import data.database.infrastructure.dao.AttestationDao
+import data.database.infrastructure.toMapString
 import data.database.model.AttestationDM
 import data.database.model.SourceDM
 import data.mappers.toDatabaseModel
@@ -30,6 +31,7 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dataSignature = ExposedBlob(attestationDM.dataSignature)
                     otsData = ExposedBlob(attestationDM.otsData)
                     isOtsComplete = attestationDM.isOtsComplete
+                    sourceParams = attestationDM.sourceParams?.toMapString()
                 }
             }
         }.synchronize(databaseSemaphore)
@@ -43,7 +45,8 @@ class AttestationDatabaseDataSource @Inject constructor(
                 } ?: getAttestationDao(
                     attestationDM.dateStart,
                     attestationDM.dateEnd,
-                    attestationDM.source
+                    attestationDM.source,
+                    attestationDM.sourceParams
                 )).apply {
                     otsData = ExposedBlob(attestationDM.otsData)
                     isOtsComplete = attestationDM.isOtsComplete
@@ -61,10 +64,15 @@ class AttestationDatabaseDataSource @Inject constructor(
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
 
-    fun getAttestation(dateStart: Long, dateEnd: Long, source: SourceDM): Single<AttestationDM> =
+    fun getAttestation(
+        dateStart: Long,
+        dateEnd: Long,
+        source: SourceDM,
+        sourceParams: Map<String, String>?
+    ): Single<AttestationDM> =
         Single.fromCallable {
             transaction {
-                getAttestationDao(dateStart, dateEnd, source).toDatabaseModel()
+                getAttestationDao(dateStart, dateEnd, source, sourceParams).toDatabaseModel()
             }
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
@@ -81,10 +89,16 @@ class AttestationDatabaseDataSource @Inject constructor(
             .subscribeOn(ioScheduler)
 
     // must be called within a transaction
-    private fun getAttestationDao(dateStart: Long, dateEnd: Long, source: SourceDM): AttestationDao =
+    private fun getAttestationDao(
+        dateStart: Long,
+        dateEnd: Long,
+        source: SourceDM,
+        sourceParams: Map<String, String>?
+    ): AttestationDao =
         AttestationDao.find {
             (TableAttestation.dateStart eq dateStart) and
                     (TableAttestation.dateEnd eq dateEnd) and
-                    (TableAttestation.dataSource eq source)
+                    (TableAttestation.dataSource eq source) and
+                    (TableAttestation.sourceParams eq sourceParams?.toMapString())
         }.single()
 }

@@ -7,6 +7,7 @@ import domain.datarepository.AttestationDataRepository
 import domain.exception.NoAttestationException
 import domain.model.Attestation
 import domain.model.Source
+import domain.model.SourceParam
 import domain.model.TimeInterval
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
@@ -19,11 +20,14 @@ class AttestationRepository @Inject constructor(
     override fun saveAttestation(attestation: Attestation): Completable =
         attestationDatabaseDataSource.insertAttestation(attestation.toDatabaseModel())
 
-    override fun getAttestation(timeInterval: TimeInterval, source: Source): Single<Attestation> =
+    override fun getAttestation(timeInterval: TimeInterval,
+                                source: Source,
+                                sourceParams: Map<SourceParam, String>?): Single<Attestation> =
         attestationDatabaseDataSource.getAttestation(
             timeInterval.startAt,
             timeInterval.finishIn,
-            source.toDatabaseModel()
+            source.toDatabaseModel(),
+            sourceParams?.toDatabaseModel()
         ).onErrorResumeNext { error ->
             if (error is NoSuchElementException) Single.error(NoAttestationException(source, timeInterval))
             else Single.error(error)

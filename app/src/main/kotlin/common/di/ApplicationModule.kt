@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import data.remote.ElasticsearchRemoteDataSource
 import data.remote.infrastructure.BasicAuthInterceptor
+import data.remote.infrastructure.ErrorMapperCallAdapterFactory
 import data.repository.*
 import domain.datarepository.*
 import domain.di.ComputationScheduler
@@ -54,11 +55,12 @@ class ApplicationModule {
     @Singleton
     fun elasticsearchRetrofit(
         elasticsearchConfiguration: ElasticsearchConfiguration,
-        elasticsearchHttpClient: OkHttpClient
+        elasticsearchHttpClient: OkHttpClient,
+        callAdapterFactory: ErrorMapperCallAdapterFactory
     ): Retrofit =
         Retrofit.Builder()
             .client(elasticsearchHttpClient)
-            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+            .addCallAdapterFactory(callAdapterFactory)
             .addConverterFactory(ScalarsConverterFactory.create())
             .baseUrl(elasticsearchConfiguration.elasticHost)
             .build()

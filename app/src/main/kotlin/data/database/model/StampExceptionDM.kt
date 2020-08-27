@@ -7,5 +7,6 @@ data class StampExceptionDM(
     val exception: String,
     val dateException: Long,
     val processed: Boolean = false,
+    val sourceParams: Map<String, String>?,
     val id: Long? = null
 )

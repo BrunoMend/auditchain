@@ -4,5 +4,5 @@ import domain.model.TimeInterval
 import io.reactivex.rxjava3.core.Single
 
 interface ElasticsearchDataRepository {
-    fun getElasticsearchData(timeInterval: TimeInterval): Single<ByteArray>
+    fun getElasticsearchData(indexPattern: String, timeInterval: TimeInterval): Single<ByteArray?>
 }

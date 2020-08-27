@@ -2,6 +2,7 @@ package data.mappers
 
 import data.database.infrastructure.dao.AttestationDao
 import data.database.infrastructure.dao.StampExceptionDao
+import data.database.infrastructure.toMap
 import data.database.model.AttestationDM
 import data.database.model.StampExceptionDM
 
@@ -16,6 +17,7 @@ fun AttestationDao.toDatabaseModel(): AttestationDM =
         dataSignature.bytes,
         otsData.bytes,
         isOtsComplete,
+        sourceParams?.toMap(),
         id.value
     )
 
@@ -27,5 +29,6 @@ fun StampExceptionDao.toDatabaseModel(): StampExceptionDM =
         exception,
         dateException,
         processed,
+        sourceParams?.toMap(),
         id.value
     )
