@@ -17,5 +17,5 @@ class ValidateNoAttestationExists @Inject constructor(
             .flatMapCompletable { throw AttestationAlreadyExistsException(it) }
             .onErrorComplete { it is NoAttestationException }
 
-    data class Request(val source: Source, val timeInterval: TimeInterval, val sourceParams: Map<SourceParam, String>)
+    data class Request(val source: Source, val timeInterval: TimeInterval, val sourceParams: Map<SourceParam, String>?)
 }

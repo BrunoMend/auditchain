@@ -34,6 +34,7 @@ class StampExceptionDatabaseDataSource @Inject constructor(
                     dateStart = stampExceptionDM.dateStart
                     dateEnd = stampExceptionDM.dateEnd
                     dataSource = stampExceptionDM.source
+                    sourceParams = stampExceptionDM.sourceParams?.toMapString()
                     exception = stampExceptionDM.exception
                     dateException = stampExceptionDM.dateException
                     processed = stampExceptionDM.processed

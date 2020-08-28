@@ -13,11 +13,11 @@ fun AttestationDao.toDatabaseModel(): AttestationDM =
         dateStart,
         dateEnd,
         dataSource,
+        sourceParams?.toMap(),
         dateTimestamp,
         dataSignature.bytes,
         otsData.bytes,
         isOtsComplete,
-        sourceParams?.toMap(),
         id.value
     )
 
@@ -26,9 +26,9 @@ fun StampExceptionDao.toDatabaseModel(): StampExceptionDM =
         dateStart,
         dateEnd,
         dataSource,
+        sourceParams?.toMap(),
         exception,
         dateException,
         processed,
-        sourceParams?.toMap(),
         id.value
     )

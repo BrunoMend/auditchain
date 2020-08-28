@@ -9,11 +9,11 @@ fun AttestationDM.toDomainModel(): Attestation =
     Attestation(
         TimeInterval(dateStart, dateEnd),
         source.toDomainModel(),
+        sourceParams?.toDomainModel(),
         dateTimestamp,
         dataSignature,
         otsData,
         isOtsComplete,
-        sourceParams?.toDomainModel(),
         id
     )
 
@@ -21,10 +21,10 @@ fun StampExceptionDM.toDomainModel(): StampException =
     StampException(
         TimeInterval(dateStart, dateEnd),
         source.toDomainModel(),
+        sourceParams?.toDomainModel(),
         exception,
         dateException,
         processed,
-        sourceParams?.toDomainModel(),
         id
     )
 

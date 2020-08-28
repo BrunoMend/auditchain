@@ -13,11 +13,11 @@ fun Attestation.toDatabaseModel(): AttestationDM =
         timeInterval.startAt,
         timeInterval.finishIn,
         source.toDatabaseModel(),
+        sourceParams?.toDatabaseModel(),
         dateTimestamp,
         dataSignature,
         otsData,
         isOtsComplete,
-        sourceParams?.toDatabaseModel(),
         id
     )
 
@@ -26,10 +26,10 @@ fun StampException.toDatabaseModel(): StampExceptionDM =
         timeInterval.startAt,
         timeInterval.finishIn,
         source.toDatabaseModel(),
+        sourceParams?.toDatabaseModel(),
         exception,
         dateException,
         processed,
-        sourceParams?.toDatabaseModel(),
         id
     )
 

@@ -15,5 +15,5 @@ class GetAttestation @Inject constructor(
     override fun getRawSingle(request: Request): Single<Attestation> =
         attestationDataRepository.getAttestation(request.timeInterval, request.source, request.sourceParams)
 
-    data class Request(val source: Source, val timeInterval: TimeInterval, val sourceParams: Map<SourceParam, String>)
+    data class Request(val source: Source, val timeInterval: TimeInterval, val sourceParams: Map<SourceParam, String>?)
 }

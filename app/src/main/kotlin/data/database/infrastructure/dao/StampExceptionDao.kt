@@ -11,8 +11,8 @@ class StampExceptionDao(id: EntityID<Long>) : LongEntity(id) {
     var dateStart by TableStampException.dateStart
     var dateEnd by TableStampException.dateEnd
     var dataSource by TableStampException.dataSource
+    var sourceParams by TableStampException.sourceParams
     var exception by TableStampException.exception
     var dateException by TableStampException.dateException
     var processed by TableStampException.processed
-    var sourceParams by TableStampException.sourceParams
 }

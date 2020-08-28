@@ -2,7 +2,6 @@ package domain.usecase
 
 import domain.model.Attestation
 import domain.model.ElasticsearchConfiguration
-import domain.model.TimeInterval
 import io.reactivex.rxjava3.core.Observable
 import javax.inject.Inject
 

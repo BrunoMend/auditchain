@@ -27,11 +27,11 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dateStart = attestationDM.dateStart
                     dateEnd = attestationDM.dateEnd
                     dataSource = attestationDM.source
+                    sourceParams = attestationDM.sourceParams?.toMapString()
                     dateTimestamp = attestationDM.dateTimestamp
                     dataSignature = ExposedBlob(attestationDM.dataSignature)
                     otsData = ExposedBlob(attestationDM.otsData)
                     isOtsComplete = attestationDM.isOtsComplete
-                    sourceParams = attestationDM.sourceParams?.toMapString()
                 }
             }
         }.synchronize(databaseSemaphore)

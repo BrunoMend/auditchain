@@ -39,6 +39,7 @@ class StampElasticsearchData @Inject constructor(
                                     Attestation(
                                         requestData.timeInterval,
                                         Source.ELASTICSEARCH,
+                                        mapOf(Pair(SourceParam.INDEX_PATTERN, requestData.indexPattern)),
                                         System.currentTimeMillis(),
                                         timestampResult.dataSignature,
                                         timestampResult.otsData
@@ -52,9 +53,10 @@ class StampElasticsearchData @Inject constructor(
             .onErrorResumeNext { error ->
                 buildStampException.getRawSingle(
                     BuildStampException.Request(
-                        Source.ELASTICSEARCH,
                         request.timeInterval,
-                        error
+                        error,
+                        Source.ELASTICSEARCH,
+                        mapOf(Pair(SourceParam.INDEX_PATTERN, request.indexPattern))
                     )
                 )
                     .flatMapCompletable { saveStampException.getRawCompletable(SaveStampException.Request(it)) }
