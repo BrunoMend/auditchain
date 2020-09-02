@@ -82,7 +82,7 @@ class AttestationDatabaseDataSource @Inject constructor(
             transaction {
                 AttestationDao
                     .find { TableAttestation.dataSource eq source }
-                    .maxBy { it.dateEnd }
+                    .maxByOrNull { it.dateEnd }
                     ?.toDatabaseModel()
             }
         }.synchronize(databaseSemaphore)
