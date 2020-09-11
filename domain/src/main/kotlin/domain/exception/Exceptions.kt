@@ -13,6 +13,12 @@ class InvalidOriginalDataException(attestation: Attestation) :
         Level.SEVERE
     )
 
+class InvalidDataSignatureException():
+        ExpectedException(
+            "Data signature cannot be verified with the verify key",
+            Level.SEVERE
+        )
+
 class PendingAttestationException(attestation: Attestation) :
     ExpectedException(
         "Data has not yet been stamped from interval ${attestation.timeInterval} and source ${attestation.source}",

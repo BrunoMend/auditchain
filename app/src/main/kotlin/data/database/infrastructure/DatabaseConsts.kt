@@ -11,6 +11,7 @@ object TableAttestation: LongIdTable() {
     val dateEnd = long("date_end")
     val dataSource = enumerationByName("data_source", 30, SourceDM::class)
     val dateTimestamp = long("date_timestamp")
+    val dataSignature = blob("data_signature")
     val otsData = blob("ots_data")
     val isOtsComplete = bool("is_ots_complete")
     init {

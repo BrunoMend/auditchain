@@ -3,6 +3,7 @@ package domain.usecase
 import domain.model.BlockchainPublication
 import domain.model.Source
 import domain.model.TimeInterval
+import domain.model.TimestampData
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
@@ -20,7 +21,10 @@ class VerifyElasticsearchData @Inject constructor(
                         getElasticsearchData.getRawSingle(GetElasticsearchData.Request(timeInterval))
                             .flatMap { originalData ->
                                 verifyStamp
-                                    .getSingle(VerifyStamp.Request(originalData, attestation))
+                                    .getSingle(VerifyStamp.Request(
+                                        TimestampData(timeInterval, originalData),
+                                        attestation
+                                    ))
                                     .map { Result.success(Pair(timeInterval, it)) }
                             }
                     }

@@ -27,6 +27,7 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dateEnd = attestationDM.dateEnd
                     dataSource = attestationDM.source
                     dateTimestamp = attestationDM.dateTimestamp
+                    dataSignature = ExposedBlob(attestationDM.dataSignature)
                     otsData = ExposedBlob(attestationDM.otsData)
                     isOtsComplete = attestationDM.isOtsComplete
                 }
