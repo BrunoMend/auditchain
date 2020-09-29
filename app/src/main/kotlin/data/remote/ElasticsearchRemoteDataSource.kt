@@ -17,6 +17,5 @@ interface ElasticsearchRemoteDataSource {
 
     @GET("/{indexPattern}/_search")
     fun getLogs(@Path("indexPattern") indexPattern: String,
-                @Query("q") query: String,
-                @Query("size") size: Int): Single<String>
+                @Query("q") query: String): Single<String>
 }

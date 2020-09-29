@@ -3,36 +3,34 @@ package data.repository
 import data.remote.ElasticsearchRemoteDataSource
 import domain.datarepository.ElasticsearchDataRepository
 import domain.exception.NoDataToStampException
-import domain.exception.NoInternetException
-import domain.exception.ServerSideException
-import domain.model.ElasticsearchConfiguration
-import domain.model.Source
-import domain.model.TimeInterval
+import domain.model.*
+import domain.utility.toDateFormat
 import io.reactivex.rxjava3.core.Single
-import retrofit2.HttpException
-import java.net.UnknownHostException
 import javax.inject.Inject
 
 class ElasticsearchRepository @Inject constructor(
-    private val elasticsearchConfiguration: ElasticsearchConfiguration,
+    private val attestationConfiguration: AttestationConfiguration,
     private val elasticsearchRemoteDataSource: ElasticsearchRemoteDataSource
 ) : ElasticsearchDataRepository {
 
-    override fun getElasticsearchData(timeInterval: TimeInterval): Single<ByteArray> =
-        elasticsearchRemoteDataSource.getLogs(
-            elasticsearchConfiguration.indexPattern,
-            elasticsearchConfiguration.getDefaultQuery(timeInterval),
-            elasticsearchConfiguration.resultMaxSize
-        ).onErrorResumeNext {
-            when (it) {
-                //TODO put this treatment in a retrofit handler
-                is HttpException -> Single.error(ServerSideException())
-                is UnknownHostException -> Single.error(NoInternetException())
-                else -> Single.error(it)
-            }
-        }.map {
-            val initLogs = "\"hits\":["
-            val result = it.substring((it.indexOf(initLogs) + initLogs.length - 1), it.lastIndexOf("]") + 1)
-            if (result.isNotEmpty() && result != "[]") result.toByteArray() else throw NoDataToStampException(timeInterval, Source.ELASTICSEARCH)
+    override fun getElasticsearchData(indexPattern: String, timeInterval: TimeInterval): Single<ByteArray> =
+         elasticsearchRemoteDataSource.getLogs(
+                    indexPattern,
+                    timeInterval.toElasticsearchQuery()
+                ).map { handleResultData(it, timeInterval) }
+
+    private fun handleResultData(data: String, timeInterval: TimeInterval): ByteArray {
+        val initLogs = "\"hits\":["
+        val result = data.substring((data.indexOf(initLogs) + initLogs.length - 1), data.lastIndexOf("]") + 1)
+        return if (result.isNotEmpty() && result != "[]")
+            result.toByteArray()
+        else {
+            if (System.currentTimeMillis() - timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis)
+                byteArrayOf(0)
+            else throw NoDataToStampException(timeInterval, Source.ELASTICSEARCH)
         }
+    }
+
+    private fun TimeInterval.toElasticsearchQuery() =
+        "@timestamp:[${startAt.toDateFormat()} TO ${finishIn.toDateFormat()}]"
 }

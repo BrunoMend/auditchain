@@ -5,6 +5,7 @@ import data.database.model.SourceDM
 import data.database.model.StampExceptionDM
 import domain.model.Attestation
 import domain.model.Source
+import domain.model.SourceParam
 import domain.model.StampException
 
 fun Attestation.toDatabaseModel(): AttestationDM =
@@ -12,6 +13,7 @@ fun Attestation.toDatabaseModel(): AttestationDM =
         timeInterval.startAt,
         timeInterval.finishIn,
         source.toDatabaseModel(),
+        sourceParams?.toDatabaseModel(),
         dateTimestamp,
         dataSignature,
         otsData,
@@ -24,6 +26,7 @@ fun StampException.toDatabaseModel(): StampExceptionDM =
         timeInterval.startAt,
         timeInterval.finishIn,
         source.toDatabaseModel(),
+        sourceParams?.toDatabaseModel(),
         exception,
         dateException,
         processed,
@@ -35,3 +38,6 @@ fun Source.toDatabaseModel(): SourceDM =
         Source.ELASTICSEARCH -> SourceDM.ELASTICSEARCH
         Source.POSTGRES -> SourceDM.POSTGRES
     }
+
+fun Map<SourceParam, String>.toDatabaseModel(): Map<String, String> =
+    map { it.key.toString() to it.value }.toMap()

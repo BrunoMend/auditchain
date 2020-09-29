@@ -16,9 +16,7 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                     it.getProperty("elasticHost"),
                     it.getProperty("elasticUser"),
                     it.getProperty("elasticPwds"),
-                    it.getProperty("indexPattern"),
-                    it.getProperty("rangeParameter"),
-                    it.getProperty("resultMaxSize").toInt()
+                    it.getProperty("indexPatterns")
                 )
             }
 

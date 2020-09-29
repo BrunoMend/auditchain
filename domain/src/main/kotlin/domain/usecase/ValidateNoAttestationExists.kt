@@ -3,6 +3,7 @@ package domain.usecase
 import domain.exception.AttestationAlreadyExistsException
 import domain.exception.NoAttestationException
 import domain.model.Source
+import domain.model.SourceParam
 import domain.model.TimeInterval
 import io.reactivex.rxjava3.core.Completable
 import javax.inject.Inject
@@ -12,9 +13,9 @@ class ValidateNoAttestationExists @Inject constructor(
 ) : CompletableUseCase<ValidateNoAttestationExists.Request>() {
 
     override fun getRawCompletable(request: Request): Completable =
-        getAttestation.getRawSingle(GetAttestation.Request(request.source, request.timeInterval))
+        getAttestation.getRawSingle(GetAttestation.Request(request.source, request.timeInterval, request.sourceParams))
             .flatMapCompletable { throw AttestationAlreadyExistsException(it) }
             .onErrorComplete { it is NoAttestationException }
 
-    data class Request(val source: Source, val timeInterval: TimeInterval)
+    data class Request(val source: Source, val timeInterval: TimeInterval, val sourceParams: Map<SourceParam, String>?)
 }

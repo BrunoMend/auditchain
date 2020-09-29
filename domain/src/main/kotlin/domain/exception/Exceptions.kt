@@ -49,6 +49,10 @@ class NoDataToStampException(timeInterval: TimeInterval, source: Source) :
 class MaxTimeIntervalExceededException(timeInterval: TimeInterval) :
     ExpectedException("The maximum time interval has been exceeded by $timeInterval", Level.INFO)
 
-class ServerSideException : ExpectedException("Http Exception on get data", Level.WARNING)
+class HttpServerException(code: Int) :
+    ExpectedException("Server error on get data. Status-code: $code", Level.WARNING)
+
+class HttpClientException(code: Int) :
+    ExpectedException("Client error on get data. Status-code: $code", Level.WARNING)
 
 class NoInternetException : ExpectedException("Fail to get data. Verify your internet connection.", Level.WARNING)

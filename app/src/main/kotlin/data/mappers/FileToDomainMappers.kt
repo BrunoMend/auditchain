@@ -8,7 +8,11 @@ import org.abstractj.kalium.keys.SigningKey
 import org.abstractj.kalium.keys.VerifyKey
 
 fun ElasticsearchConfigurationFM.toDomain() =
-    ElasticsearchConfiguration(elasticHost, elasticUser, elasticPwds, indexPattern, rangeParameter, resultMaxSize)
+    ElasticsearchConfiguration(
+        elasticHost,
+        elasticUser,
+        elasticPwds,
+        indexPattern.split(","))
 
 fun AttestationConfigurationFM.toDomain(signingKeyByteArray: ByteArray, verifyKeyByteArray: ByteArray) =
     AttestationConfiguration(
