@@ -1,9 +1,9 @@
 package domain.model
 
+import domain.cryptography.SigningKey
+import domain.cryptography.VerifyKey
 import domain.exception.InvalidDataSignatureException
 import domain.utility.toByteArray
-import org.abstractj.kalium.keys.SigningKey
-import org.abstractj.kalium.keys.VerifyKey
 import java.io.Serializable
 import java.lang.RuntimeException
 

@@ -2,10 +2,10 @@ package data.mappers
 
 import data.file.model.AttestationConfigurationFM
 import data.file.model.ElasticsearchConfigurationFM
+import domain.cryptography.SigningKey
+import domain.cryptography.VerifyKey
 import domain.model.AttestationConfiguration
 import domain.model.ElasticsearchConfiguration
-import org.abstractj.kalium.keys.SigningKey
-import org.abstractj.kalium.keys.VerifyKey
 
 fun ElasticsearchConfigurationFM.toDomain() =
     ElasticsearchConfiguration(

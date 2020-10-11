@@ -31,7 +31,9 @@ allprojects {
         implementation "io.reactivex.rxjava3:rxkotlin:3.0.0"
         implementation "com.google.dagger:dagger:2.27"
         kapt "com.google.dagger:dagger-compiler:2.27"
-        implementation "org.abstractj.kalium:kalium:0.8.0"
+        implementation "com.goterl.lazycode:lazysodium-java:4.3.0"
+        implementation "net.java.dev.jna:jna:5.6.0"
+//        implementation "org.abstractj.kalium:kalium:0.8.0" //TODO remove this lib
 
         testCompile group: 'junit', name: 'junit', version: '4.12'
     }
