@@ -1,12 +1,15 @@
 package domain.utility
 
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneOffset
 import java.util.*
 
 private const val MILLIS_IN_A_DAY: Long = 86400000
-private val TIME_ZONE_MILLIS = -3 * 3600000 //TODO get local Time Zone value
-const val DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
+private const val DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
 const val UI_DATE_FORMAT = "yyyy-MM-dd HH:mm"
+
+private val zoneOffsetMillis = ZoneOffset.systemDefault().rules.getOffset(Instant.now()).totalSeconds * 1000
 
 fun Date.toDateFormat(pattern: String = DEFAULT_DATE_FORMAT): String = SimpleDateFormat(pattern).format(this)
 
@@ -17,7 +20,7 @@ fun String.toDate(pattern: String = DEFAULT_DATE_FORMAT): Date = SimpleDateForma
 fun String.toDateMillis(pattern: String = DEFAULT_DATE_FORMAT): Long = this.toDate(pattern).time
 
 fun getMomentMillisOfDay(moment: Long): Long {
-    val millisOfDay = moment.rem(MILLIS_IN_A_DAY) + TIME_ZONE_MILLIS
+    val millisOfDay = moment.rem(MILLIS_IN_A_DAY) + zoneOffsetMillis
     return when {
         millisOfDay < 0 -> millisOfDay + MILLIS_IN_A_DAY
         millisOfDay > MILLIS_IN_A_DAY -> millisOfDay - MILLIS_IN_A_DAY

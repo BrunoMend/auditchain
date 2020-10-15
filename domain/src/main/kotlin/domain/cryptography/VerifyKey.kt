@@ -3,7 +3,6 @@ package domain.cryptography
 import com.goterl.lazycode.lazysodium.LazySodiumJava
 import com.goterl.lazycode.lazysodium.SodiumJava
 
-
 class VerifyKey(private val key: ByteArray) {
     private val lazySodium = LazySodiumJava(SodiumJava())
 

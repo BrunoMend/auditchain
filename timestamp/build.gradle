@@ -1,4 +1,4 @@
 dependencies {
-    implementation "com.eternitywall:java-opentimestamps:1.18"
+    implementation "com.eternitywall:java-opentimestamps:1.19"
     implementation project(':domain')
 }

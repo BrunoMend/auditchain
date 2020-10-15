@@ -8,9 +8,9 @@ class VerifyElasticsearchData @Inject constructor(
     private val getAttestation: GetAttestation,
     private val getElasticsearchData: GetElasticsearchData,
     private val verifyStamp: VerifyStamp
-) : SingleUseCase<Result<Pair<TimeInterval, List<BlockchainPublication>>>, VerifyElasticsearchData.Request>() {
+) : SingleUseCase<Result<AttestationVerifyResult>, VerifyElasticsearchData.Request>() {
 
-    override fun getRawSingle(request: Request): Single<Result<Pair<TimeInterval, List<BlockchainPublication>>>> =
+    override fun getRawSingle(request: Request): Single<Result<AttestationVerifyResult>> =
         Single.just(request)
             .flatMap { requestData ->
                 getAttestation.getSingle(
@@ -35,7 +35,7 @@ class VerifyElasticsearchData @Inject constructor(
                                             attestation
                                         )
                                     )
-                                    .map { Result.success(Pair(requestData.timeInterval, it)) }
+                                    .map { Result.success(AttestationVerifyResult(attestation, it)) }
                             }
                     }
             }.onErrorResumeNext { Single.just(Result.failure(it)) }

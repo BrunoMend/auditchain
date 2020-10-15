@@ -47,11 +47,13 @@ class StampElasticsearchCommand @Inject constructor(
     }
 
     private fun printStampSuccess(attestation: Attestation) {
+        printVerboseSeparatorLine()
         printVerbose(
-            "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
+            "Data from: " +
+                    "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
                     "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
-                    "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
-                    "ots proof: ${attestation.otsData}"
+                    attestation.sourceParams?.map { "${it.key} : ${it.value}" }?.joinToString("\n") + "\n" +
+                    "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)}"
         )
     }
 }

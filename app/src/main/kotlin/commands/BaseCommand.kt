@@ -26,7 +26,15 @@ abstract class BaseCommand : CliktCommand() {
         }
     }
 
-    protected open fun printProcessCompleted() {
-        printMsg("Process completed")
+    protected fun printProcessCompleted() {
+        printMsg(".\n.\n.\nProcess completed")
+    }
+
+    protected fun printSeparatorLine() {
+        printMsg("-------------------------------------------------------------------")
+    }
+
+    protected fun printVerboseSeparatorLine() {
+        if (verbose) printSeparatorLine()
     }
 }
