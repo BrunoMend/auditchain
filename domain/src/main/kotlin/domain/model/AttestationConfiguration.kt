@@ -1,7 +1,7 @@
 package domain.model
 
-import org.abstractj.kalium.keys.SigningKey
-import org.abstractj.kalium.keys.VerifyKey
+import domain.cryptography.SigningKey
+import domain.cryptography.VerifyKey
 
 data class AttestationConfiguration(
     val frequency: Long,
