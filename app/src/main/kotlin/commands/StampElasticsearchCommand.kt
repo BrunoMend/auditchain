@@ -49,10 +49,7 @@ class StampElasticsearchCommand @Inject constructor(
     private fun printStampSuccess(attestation: Attestation) {
         printVerboseSeparatorLine()
         printVerbose(
-            "Data from: " +
-                    "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                    "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
-                    attestation.sourceParams?.map { "${it.key} : ${it.value}" }?.joinToString("\n") + "\n" +
+            "Data from:\n$attestation" +
                     "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)}"
         )
     }

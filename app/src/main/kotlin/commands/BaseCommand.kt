@@ -22,7 +22,10 @@ abstract class BaseCommand : CliktCommand() {
     protected fun Throwable.printError() {
         when (this) {
             is ExpectedException -> printMsg(this.message!!)
-            else -> printMsg("Unexpected error: ${this.errorName} :: ${this.message}")
+            else -> printMsg(
+                "Unexpected error: ${this.errorName} :: ${this.message}.\n" +
+                        "See logs.log for more information."
+            )
         }
     }
 

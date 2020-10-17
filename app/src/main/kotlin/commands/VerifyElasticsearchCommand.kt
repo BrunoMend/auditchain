@@ -39,10 +39,7 @@ class VerifyElasticsearchCommand @Inject constructor(
     private fun printVerifySuccess(result: AttestationVerifyResult) {
         printSeparatorLine()
         printMsg(
-            "Data from: " +
-                    "${result.attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                    "${result.attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
-                    result.attestation.sourceParams?.map { "${it.key} : ${it.value}" }?.joinToString("\n") + "\n" +
+            "Data from:\n${result.attestation}" +
                     "Is attested by: \n" +
                     result.blockchainPublications.joinToString("\n") {
                         "${it.blockchain} since ${it.datePublication.toDateFormat(UI_DATE_FORMAT)}"

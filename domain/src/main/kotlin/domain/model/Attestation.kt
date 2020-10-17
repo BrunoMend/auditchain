@@ -1,5 +1,7 @@
 package domain.model
 
+import domain.utility.toKeyValueString
+
 data class Attestation(
     val timeInterval: TimeInterval,
     val source: Source,
@@ -9,4 +11,9 @@ data class Attestation(
     var otsData: ByteArray,
     var isOtsComplete: Boolean = false,
     val id: Long? = null
-)
+) {
+    override fun toString(): String =
+        "Interval: ${timeInterval}\n" +
+                "Source: ${source}\n" +
+                "${sourceParams.toKeyValueString()}\n"
+}
