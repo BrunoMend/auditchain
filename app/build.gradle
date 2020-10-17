@@ -1,7 +1,3 @@
-plugins {
-    id 'com.github.johnrengelman.shadow' version '6.0.0'
-}
-
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
@@ -11,20 +7,18 @@ compileTestKotlin {
 }
 
 jar {
-    manifest {
-        attributes 'Main-Class': 'common.MainKt'
-    }
-}
+    getArchiveBaseName()
 
-task fatJar(type: Jar) {
     manifest {
-        attributes 'Main-Class': 'common.MainKt'
+        attributes 'Main-Class': 'common.MainKt',
+                'Implementation-Title': 'Auditchain jar',
+                'Implementation-Version': project.version,
+                'Created-By': 'Bruno Mendonça'
     }
 
-    archiveClassifier.set('auditchain')
+    setArchivesBaseName('Auditchain')
 
     from sourceSets.main.output
-
     dependsOn configurations.runtimeClasspath
     from { configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) } }
             {
