@@ -4,6 +4,7 @@ import com.goterl.lazycode.lazysodium.LazySodiumJava
 import com.goterl.lazycode.lazysodium.SodiumJava
 
 class SigningKey(seed: ByteArray) {
+    //TODO inject this
     private val lazySodium = LazySodiumJava(SodiumJava())
     private val secretKey: ByteArray
 
