@@ -1,8 +1,7 @@
 package commands
 
 import domain.model.AttestationConfiguration
-import domain.model.BlockchainPublication
-import domain.model.TimeInterval
+import domain.model.AttestationVerifyResult
 import domain.usecase.GetLastStampedTime
 import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.usecase.VerifyElasticsearchDataByInterval
@@ -35,17 +34,18 @@ class VerifyElasticsearchCommand @Inject constructor(
             .doOnError { it.printError() }
             .onErrorComplete()
             .blockingSubscribe()
+
+        printMsg("Program finished")
     }
 
-    private fun printVerifySuccess(result: Pair<TimeInterval, List<BlockchainPublication>>) {
-        val timeInterval = result.first
-        val blockchainPublications = result.second
-
-        blockchainPublications.forEach {
-            printMsg(
-                "${it.blockchain} attests that data from interval $timeInterval was stamped at " +
-                        it.datePublication.toDateFormat(UI_DATE_FORMAT)
-            )
-        }
+    private fun printVerifySuccess(result: AttestationVerifyResult) {
+        printSeparatorLine()
+        printMsg(
+            "Data from:\n${result.attestation}" +
+                    "Is attested by: \n" +
+                    result.blockchainPublications.joinToString("\n") {
+                        "${it.blockchain} since ${it.datePublication.toDateFormat(UI_DATE_FORMAT)}"
+                    } + "\n"
+        )
     }
 }

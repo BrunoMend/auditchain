@@ -7,7 +7,8 @@ import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class PropertiesFileDataSource @Inject constructor(private val propertiesStorage: PropertiesStorage) {
-    private val configFilePath = "C:\\ots\\config.properties" //TODO \\config.properties
+    private val configFilePath = "C:\\ots\\debug\\config.properties" //debug
+//    private val configFilePath = "./config.properties" //prod
 
     fun getElasticsearchConfiguration(): Single<ElasticsearchConfigurationFM> =
         propertiesStorage.getProperties(configFilePath)

@@ -17,9 +17,9 @@ class ElasticsearchRepository @Inject constructor(
          elasticsearchRemoteDataSource.getLogs(
                     indexPattern,
                     timeInterval.toElasticsearchQuery()
-                ).map { handleResultData(it, timeInterval) }
+                ).map { handleResultData(it, timeInterval, indexPattern) }
 
-    private fun handleResultData(data: String, timeInterval: TimeInterval): ByteArray {
+    private fun handleResultData(data: String, timeInterval: TimeInterval, indexPattern: String): ByteArray {
         val initLogs = "\"hits\":["
         val result = data.substring((data.indexOf(initLogs) + initLogs.length - 1), data.lastIndexOf("]") + 1)
         return if (result.isNotEmpty() && result != "[]")
@@ -27,7 +27,7 @@ class ElasticsearchRepository @Inject constructor(
         else {
             if (System.currentTimeMillis() - timeInterval.finishIn > attestationConfiguration.tryAgainTimeoutMillis)
                 byteArrayOf(0)
-            else throw NoDataToStampException(timeInterval, Source.ELASTICSEARCH)
+            else throw NoDataToStampException(timeInterval, Source.ELASTICSEARCH, mapOf(Pair(SourceParam.INDEX_PATTERN, indexPattern)))
         }
     }
 

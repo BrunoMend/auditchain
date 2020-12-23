@@ -6,6 +6,28 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+jar {
+    getArchiveBaseName()
+
+    manifest {
+        attributes 'Main-Class': 'common.MainKt',
+                'Implementation-Title': 'Auditchain jar',
+                'Implementation-Version': project.version,
+                'Created-By': 'Bruno Mendonça'
+    }
+
+    setArchivesBaseName('Auditchain')
+
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from { configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) } }
+            {
+                exclude "META-INF/*.SF"
+                exclude "META-INF/*.DSA"
+                exclude "META-INF/*.RSA"
+            }
+}
+
 dependencies {
     implementation "com.squareup.retrofit2:retrofit:2.7.2"
     implementation "com.squareup.retrofit2:converter-scalars:2.7.2"

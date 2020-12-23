@@ -2,49 +2,59 @@ package domain.exception
 
 import domain.model.Attestation
 import domain.model.Source
+import domain.model.SourceParam
 import domain.model.TimeInterval
+import domain.utility.toKeyValueString
 import java.util.logging.Level
 
 abstract class ExpectedException(message: String, val loggerLevel: Level) : Exception(message)
 
 class InvalidOriginalDataException(attestation: Attestation) :
     ExpectedException(
-        "Original data doesn't match to ots data from interval ${attestation.timeInterval} and source ${attestation.source}",
+        "Original data doesn't match to ots data from:\n$attestation",
         Level.SEVERE
     )
 
-class InvalidDataSignatureException():
-        ExpectedException(
-            "Data signature cannot be verified with the verify key",
-            Level.SEVERE
-        )
+class InvalidDataSignatureException :
+    ExpectedException(
+        "Data signature cannot be verified with the verify key",
+        Level.SEVERE
+    )
 
 class PendingAttestationException(attestation: Attestation) :
     ExpectedException(
-        "Data has not yet been stamped from interval ${attestation.timeInterval} and source ${attestation.source}",
+        "Data has not yet been stamped from:\n$attestation",
         Level.INFO
     )
 
 class BadAttestationException(attestation: Attestation) :
     ExpectedException(
-        "Bad attestation from interval ${attestation.timeInterval} and source ${attestation.source}",
+        "Bad attestation from:\n$attestation",
         Level.SEVERE
     )
 
 class AttestationAlreadyExistsException(attestation: Attestation) :
     ExpectedException(
-        "Attestation already exists from interval ${attestation.timeInterval} and source ${attestation.source}",
+        "Attestation already exists from:\n$attestation",
         Level.INFO
     )
 
-class NoAttestationException(source: Source, timeInterval: TimeInterval? = null) :
+class NoAttestationException(source: Source, sourceParams: Map<SourceParam, String>?, timeInterval: TimeInterval?) :
     ExpectedException(
-        "No attestation found from source $source" + if (timeInterval != null) " and interval $timeInterval" else "",
+        "No attestation found from:\n" +
+                (if (timeInterval != null) "Interval: $timeInterval\n" else "") +
+                "Source $source\n" +
+                sourceParams?.toKeyValueString(),
         Level.INFO
     )
 
-class NoDataToStampException(timeInterval: TimeInterval, source: Source) :
-    ExpectedException("No data to stamp from interval $timeInterval and source $source", Level.INFO)
+class NoDataToStampException(timeInterval: TimeInterval, source: Source, sourceParams: Map<SourceParam, String>?) :
+    ExpectedException(
+        "No data to stamp from:\n" +
+                "Interval: $timeInterval\n" +
+                "Source $source\n" +
+                sourceParams?.toKeyValueString(), Level.INFO
+    )
 
 class MaxTimeIntervalExceededException(timeInterval: TimeInterval) :
     ExpectedException("The maximum time interval has been exceeded by $timeInterval", Level.INFO)

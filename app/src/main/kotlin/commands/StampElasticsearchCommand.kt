@@ -44,14 +44,15 @@ class StampElasticsearchCommand @Inject constructor(
             .doOnError { it.printError() }
             .onErrorComplete()
             .blockingSubscribe()
+
+        printMsg("Program finished")
     }
 
     private fun printStampSuccess(attestation: Attestation) {
+        printVerboseSeparatorLine()
         printVerbose(
-            "${attestation.timeInterval.startAt.toDateFormat(UI_DATE_FORMAT)} - " +
-                    "${attestation.timeInterval.finishIn.toDateFormat(UI_DATE_FORMAT)} \n" +
-                    "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)} \n" +
-                    "ots proof: ${attestation.otsData}"
+            "Data from:\n$attestation" +
+                    "Stamped at ${attestation.dateTimestamp.toDateFormat(UI_DATE_FORMAT)}"
         )
     }
 }

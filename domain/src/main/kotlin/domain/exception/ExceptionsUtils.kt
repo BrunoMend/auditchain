@@ -8,6 +8,10 @@ val Throwable.errorName: String
 fun Throwable.log(logger: Logger) {
     when (this) {
         is ExpectedException -> logger.log(this.loggerLevel, this.message)
-        else -> logger.warning("Unexpected error: ${this.errorName} :: ${this.message}")
+        else -> logger.warning(
+            "Unexpected error: ${this.errorName} :: ${this.message}:" +
+                    "\n${this.stackTraceToString()}" +
+                    "\n--------------------------------------------------\n"
+        )
     }
 }

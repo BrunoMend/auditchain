@@ -1,8 +1,7 @@
 package domain.usecase
 
-import domain.model.BlockchainPublication
+import domain.model.AttestationVerifyResult
 import domain.model.ElasticsearchConfiguration
-import domain.model.TimeInterval
 import io.reactivex.rxjava3.core.Observable
 import javax.inject.Inject
 
@@ -10,9 +9,9 @@ class VerifyElasticsearchDataByInterval @Inject constructor(
     private val getTimeIntervals: GetTimeIntervals,
     private val verifyElasticsearchData: VerifyElasticsearchData,
     private val elasticsearchConfiguration: ElasticsearchConfiguration
-) : ObservableUseCase<Result<Pair<TimeInterval, List<BlockchainPublication>>>, VerifyElasticsearchDataByInterval.Request>() {
+) : ObservableUseCase<Result<AttestationVerifyResult>, VerifyElasticsearchDataByInterval.Request>() {
 
-    override fun getRawObservable(request: Request): Observable<Result<Pair<TimeInterval, List<BlockchainPublication>>>> =
+    override fun getRawObservable(request: Request): Observable<Result<AttestationVerifyResult>> =
         getTimeIntervals.getRawSingle(GetTimeIntervals.Request(request.startAt, request.finishIn))
             .flatMapObservable { Observable.fromIterable(it) }
             .flatMap { timeInterval ->

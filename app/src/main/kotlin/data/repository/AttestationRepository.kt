@@ -20,16 +20,24 @@ class AttestationRepository @Inject constructor(
     override fun saveAttestation(attestation: Attestation): Completable =
         attestationDatabaseDataSource.insertAttestation(attestation.toDatabaseModel())
 
-    override fun getAttestation(timeInterval: TimeInterval,
-                                source: Source,
-                                sourceParams: Map<SourceParam, String>?): Single<Attestation> =
+    override fun getAttestation(
+        timeInterval: TimeInterval,
+        source: Source,
+        sourceParams: Map<SourceParam, String>?
+    ): Single<Attestation> =
         attestationDatabaseDataSource.getAttestation(
             timeInterval.startAt,
             timeInterval.finishIn,
             source.toDatabaseModel(),
             sourceParams?.toDatabaseModel()
         ).onErrorResumeNext { error ->
-            if (error is NoSuchElementException) Single.error(NoAttestationException(source, timeInterval))
+            if (error is NoSuchElementException) Single.error(
+                NoAttestationException(
+                    source,
+                    sourceParams,
+                    timeInterval
+                )
+            )
             else Single.error(error)
         }.map { it.toDomainModel() }
 
@@ -42,5 +50,5 @@ class AttestationRepository @Inject constructor(
 
     override fun getLastStampedTime(source: Source): Single<Long> =
         attestationDatabaseDataSource.getLastAttestation(source.toDatabaseModel())
-            .map { it?.dateEnd ?: throw NoAttestationException(source) }
+            .map { it?.dateEnd ?: throw NoAttestationException(source, null, null) }
 }
