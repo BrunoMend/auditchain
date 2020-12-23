@@ -44,6 +44,8 @@ class StampElasticsearchCommand @Inject constructor(
             .doOnError { it.printError() }
             .onErrorComplete()
             .blockingSubscribe()
+
+        printMsg("Program finished")
     }
 
     private fun printStampSuccess(attestation: Attestation) {

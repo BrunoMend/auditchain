@@ -34,6 +34,8 @@ class VerifyElasticsearchCommand @Inject constructor(
             .doOnError { it.printError() }
             .onErrorComplete()
             .blockingSubscribe()
+
+        printMsg("Program finished")
     }
 
     private fun printVerifySuccess(result: AttestationVerifyResult) {

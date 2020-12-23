@@ -42,9 +42,9 @@ class AttestationAlreadyExistsException(attestation: Attestation) :
 class NoAttestationException(source: Source, sourceParams: Map<SourceParam, String>?, timeInterval: TimeInterval?) :
     ExpectedException(
         "No attestation found from:\n" +
-                if (timeInterval != null) "Interval: $timeInterval\n" else "" +
-                        "Source $source\n" +
-                        sourceParams?.toKeyValueString(),
+                (if (timeInterval != null) "Interval: $timeInterval\n" else "") +
+                "Source $source\n" +
+                sourceParams?.toKeyValueString(),
         Level.INFO
     )
 
