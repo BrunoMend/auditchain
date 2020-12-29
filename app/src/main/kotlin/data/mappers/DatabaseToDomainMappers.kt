@@ -13,7 +13,7 @@ fun AttestationDM.toDomainModel(): Attestation =
         dateTimestamp,
         dataSignature,
         otsData,
-        isOtsComplete,
+        dateOtsComplete,
         id
     )
 

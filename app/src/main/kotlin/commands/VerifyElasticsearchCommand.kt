@@ -45,7 +45,10 @@ class VerifyElasticsearchCommand @Inject constructor(
                     "Is attested by: \n" +
                     result.blockchainPublications.joinToString("\n") {
                         "${it.blockchain} since ${it.datePublication.toDateFormat(UI_DATE_FORMAT)}"
-                    } + "\n"
+                    } + "\n" +
+                    "Latency time from this attestation: ${
+                        result.attestation.latencyMillis?.div(1000)?.toInt() ?: -1
+                    } seconds" + "\n"
         )
     }
 }

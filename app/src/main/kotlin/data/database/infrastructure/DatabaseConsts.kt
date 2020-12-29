@@ -15,7 +15,7 @@ object TableAttestation : LongIdTable() {
     val dateTimestamp = long("date_timestamp")
     val dataSignature = blob("data_signature")
     val otsData = blob("ots_data")
-    val isOtsComplete = bool("is_ots_complete")
+    val dateOtsComplete = long("date_ots_complete").nullable()
 
     init {
         index(true, dateStart, dateEnd, dataSource, sourceParams)

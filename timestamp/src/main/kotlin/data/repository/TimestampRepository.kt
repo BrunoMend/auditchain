@@ -29,7 +29,7 @@ class TimestampRepository @Inject constructor(
 
     override fun checkIsOtsComplete(attestation: Attestation): Single<Attestation> =
         openTimestampsDataSource.verifyIsOtsComplete(attestation.otsData)
-            .map { attestation.apply { isOtsComplete = it } }
+            .map { attestation.apply { dateOtsComplete = if(it) System.currentTimeMillis() else null } }
 
     override fun verifyStamp(attestation: Attestation): Single<List<BlockchainPublication>> =
         openTimestampsDataSource.verify(attestation.dataSignature, attestation.otsData)
@@ -40,7 +40,7 @@ class TimestampRepository @Inject constructor(
                 if (result == null || result.isEmpty())
                     checkIsOtsComplete(attestation)
                         .map {
-                            if (attestation.isOtsComplete) throw BadAttestationException(attestation)
+                            if (attestation.dateOtsComplete != null) throw BadAttestationException(attestation)
                             else throw PendingAttestationException(attestation)
                         }
                 else Single.just(result)
