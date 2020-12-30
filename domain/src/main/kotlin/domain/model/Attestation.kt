@@ -9,11 +9,14 @@ data class Attestation(
     val dateTimestamp: Long,
     val dataSignature: ByteArray,
     var otsData: ByteArray,
-    var isOtsComplete: Boolean = false,
+    var dateOtsComplete: Long? = null,
     val id: Long? = null
 ) {
     override fun toString(): String =
         "Interval: ${timeInterval}\n" +
                 "Source: ${source}\n" +
                 "${sourceParams.toKeyValueString()}\n"
+
+    val latencyMillis: Long?
+        get() = dateOtsComplete?.let { it - dateTimestamp }
 }

@@ -8,6 +8,6 @@ data class AttestationDM(
     val dateTimestamp: Long,
     val dataSignature: ByteArray,
     val otsData: ByteArray,
-    val isOtsComplete: Boolean = false,
+    val dateOtsComplete: Long? = null,
     val id: Long? = null
 )

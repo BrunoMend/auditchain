@@ -31,7 +31,7 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dateTimestamp = attestationDM.dateTimestamp
                     dataSignature = ExposedBlob(attestationDM.dataSignature)
                     otsData = ExposedBlob(attestationDM.otsData)
-                    isOtsComplete = attestationDM.isOtsComplete
+                    dateOtsComplete = attestationDM.dateOtsComplete
                 }
             }
         }.synchronize(databaseSemaphore)
@@ -49,7 +49,7 @@ class AttestationDatabaseDataSource @Inject constructor(
                     attestationDM.sourceParams
                 )).apply {
                     otsData = ExposedBlob(attestationDM.otsData)
-                    isOtsComplete = attestationDM.isOtsComplete
+                    dateOtsComplete = attestationDM.dateOtsComplete
                 }
             }
         }.synchronize(databaseSemaphore)
@@ -58,7 +58,7 @@ class AttestationDatabaseDataSource @Inject constructor(
     fun getIncompleteOtsAttestations(): Single<List<AttestationDM>> =
         Single.fromCallable {
             transaction {
-                AttestationDao.find { TableAttestation.isOtsComplete eq false }
+                AttestationDao.find { TableAttestation.dateOtsComplete eq null }
                     .map { it.toDatabaseModel() }
             }
         }.synchronize(databaseSemaphore)
