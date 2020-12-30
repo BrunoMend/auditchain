@@ -18,5 +18,5 @@ data class Attestation(
                 "${sourceParams.toKeyValueString()}\n"
 
     val latencyMillis: Long?
-        get() = dateOtsComplete?.let { dateTimestamp - it }
+        get() = dateOtsComplete?.let { it - dateTimestamp }
 }
