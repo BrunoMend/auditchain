@@ -3,8 +3,6 @@ package data.database.infrastructure
 import data.database.model.SourceDM
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-const val DATABASE_URL = "jdbc:sqlite://C:/ots/debug/data.db" //debug
-//const val DATABASE_URL = "jdbc:sqlite:./data.db" //prod
 const val DATABASE_DRIVER = "org.sqlite.JDBC"
 
 object TableAttestation : LongIdTable() {
