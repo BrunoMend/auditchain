@@ -5,14 +5,16 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import domain.exception.ExpectedException
 import domain.exception.errorName
+import domain.utility.printMessageLogInFile
 
 abstract class BaseCommand : CliktCommand() {
+
     private val verbose: Boolean
             by option("-v", "--verbose").flag()
 
     protected fun printMsg(msg: String) {
-        //TODO check the best way to print console messages
         println(msg)
+        printMessageLogInFile(this::class.simpleName ?: "", msg)
     }
 
     protected fun printVerbose(msg: String) {
