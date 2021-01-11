@@ -8,7 +8,7 @@ import java.util.logging.Level
 fun printExceptionLogInFile(className: String, exception: Throwable) {
     printLogInFile(
         className,
-        System.getenv("EXCEPTION_LOG_FILE_PATH"),
+        System.getenv("EXCEPTION_LOG_FILE_PATH") ?: "./exceptions.log",
         exception.logLevel,
         exception.logMessage
     )
@@ -17,7 +17,7 @@ fun printExceptionLogInFile(className: String, exception: Throwable) {
 fun printMessageLogInFile(className: String, message: String) {
     printLogInFile(
         className,
-        System.getenv("MESSAGE_LOG_FILE_PATH"),
+        System.getenv("MESSAGE_LOG_FILE_PATH") ?: "./messages.log",
         Level.INFO,
         message
     )

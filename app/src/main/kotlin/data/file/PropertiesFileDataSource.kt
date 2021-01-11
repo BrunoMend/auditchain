@@ -8,8 +8,10 @@ import javax.inject.Inject
 
 class PropertiesFileDataSource @Inject constructor(private val propertiesStorage: PropertiesStorage) {
 
+    private val configFilePath: String = System.getenv("CONFIG_FILE_PATH") ?: "./config.properties"
+
     fun getElasticsearchConfiguration(): Single<ElasticsearchConfigurationFM> =
-        propertiesStorage.getProperties(System.getenv("CONFIG_FILE_PATH"))
+        propertiesStorage.getProperties(configFilePath)
             .map {
                 ElasticsearchConfigurationFM(
                     it.getProperty("elasticHost"),
@@ -20,7 +22,7 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
             }
 
     fun getAttestationConfiguration(): Single<AttestationConfigurationFM> =
-        propertiesStorage.getProperties(System.getenv("CONFIG_FILE_PATH"))
+        propertiesStorage.getProperties(configFilePath)
             .map {
                 AttestationConfigurationFM(
                     it.getProperty("frequency").toLong(),

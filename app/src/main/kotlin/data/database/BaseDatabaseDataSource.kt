@@ -12,7 +12,7 @@ abstract class BaseDatabaseDataSource {
     companion object {
         init {
             // set information to get connections
-            Database.connect(System.getenv("DATABASE_URL_PATH"), DATABASE_DRIVER)
+            Database.connect(System.getenv("DATABASE_URL_PATH") ?: "jdbc:sqlite:./data.db", DATABASE_DRIVER)
             transaction {
                 // create tables if not exists
                 SchemaUtils.create(TableAttestation, TableStampException)
