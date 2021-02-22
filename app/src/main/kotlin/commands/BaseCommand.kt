@@ -6,8 +6,9 @@ import com.github.ajalt.clikt.parameters.options.option
 import domain.exception.ExpectedException
 import domain.exception.errorName
 import domain.utility.printMessageLogInFile
+import okhttp3.OkHttpClient
 
-abstract class BaseCommand : CliktCommand() {
+abstract class BaseCommand(private val client: OkHttpClient) : CliktCommand() {
 
     private val verbose: Boolean
             by option("-v", "--verbose").flag()
@@ -41,5 +42,14 @@ abstract class BaseCommand : CliktCommand() {
 
     protected fun printVerboseSeparatorLine() {
         if (verbose) printSeparatorLine()
+    }
+
+    protected fun releaseResources() {
+        // release resources to finish the program properly
+
+        //https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/
+        client.dispatcher().executorService().shutdown()
+        client.connectionPool().evictAll()
+        client.cache()?.close()
     }
 }

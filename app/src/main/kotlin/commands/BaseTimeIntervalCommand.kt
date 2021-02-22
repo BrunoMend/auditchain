@@ -7,12 +7,14 @@ import domain.model.AttestationConfiguration
 import domain.model.Source
 import domain.usecase.GetLastStampedTime
 import domain.utility.*
+import okhttp3.OkHttpClient
 import java.text.ParseException
 
 abstract class BaseTimeIntervalCommand(
+    client: OkHttpClient,
     private val attestationConfiguration: AttestationConfiguration,
     private val getLastStampedTime: GetLastStampedTime
-) : BaseCommand() {
+) : BaseCommand(client) {
 
     protected val uiStartAt: String by lazy { startAt.toDateFormat(UI_DATE_FORMAT) }
     protected val uiFinishIn: String by lazy { finishIn.toDateFormat(UI_DATE_FORMAT) }

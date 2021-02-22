@@ -23,7 +23,7 @@ class InvalidDataSignatureException :
 
 class PendingAttestationException(attestation: Attestation) :
     ExpectedException(
-        "Data has not yet been stamped from:\n$attestation",
+        "Data attested by OpenTimestamps and pending Bitcoin attestation from:\n$attestation",
         Level.INFO
     )
 

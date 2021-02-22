@@ -7,14 +7,16 @@ import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.usecase.VerifyElasticsearchDataByInterval
 import domain.utility.UI_DATE_FORMAT
 import domain.utility.toDateFormat
+import okhttp3.OkHttpClient
 import javax.inject.Inject
 
 class VerifyElasticsearchCommand @Inject constructor(
     attestationConfiguration: AttestationConfiguration,
     getLastStampedTime: GetLastStampedTime,
+    client: OkHttpClient,
     private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
     private val verifyElasticsearchDataByInterval: VerifyElasticsearchDataByInterval
-) : BaseTimeIntervalCommand(attestationConfiguration, getLastStampedTime) {
+) : BaseTimeIntervalCommand(client, attestationConfiguration, getLastStampedTime) {
 
     override fun run() {
         super.run()
@@ -30,12 +32,13 @@ class VerifyElasticsearchCommand @Inject constructor(
                         if (result.isSuccess) printVerifySuccess(result.getOrThrow())
                         else result.exceptionOrNull()?.printError()
                     })
-            .doOnComplete { printProcessCompleted() }
+            .doOnComplete {
+                releaseResources()
+                printProcessCompleted()
+            }
             .doOnError { it.printError() }
             .onErrorComplete()
             .blockingSubscribe()
-
-        printMsg("Program finished")
     }
 
     private fun printVerifySuccess(result: AttestationVerifyResult) {
