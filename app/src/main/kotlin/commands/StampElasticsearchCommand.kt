@@ -9,15 +9,17 @@ import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.utility.UI_DATE_FORMAT
 import domain.utility.toDateFormat
 import io.reactivex.rxjava3.core.Observable
+import okhttp3.OkHttpClient
 import javax.inject.Inject
 
 class StampElasticsearchCommand @Inject constructor(
     attestationConfiguration: AttestationConfiguration,
     getLastStampedTime: GetLastStampedTime,
+    client: OkHttpClient,
     private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
     private val processAllElasticsearchStampExceptions: ProcessAllElasticsearchStampExceptions,
     private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval
-) : BaseTimeIntervalCommand(attestationConfiguration, getLastStampedTime) {
+) : BaseTimeIntervalCommand(client, attestationConfiguration, getLastStampedTime) {
 
     override fun run() {
         super.run()
@@ -40,12 +42,13 @@ class StampElasticsearchCommand @Inject constructor(
                             else result.exceptionOrNull()?.printError()
                         }
                 ))
-            .doOnComplete { printProcessCompleted() }
+            .doOnComplete {
+                releaseResources()
+                printProcessCompleted()
+            }
             .doOnError { it.printError() }
             .onErrorComplete()
             .blockingSubscribe()
-
-        printMsg("Program finished")
     }
 
     private fun printStampSuccess(attestation: Attestation) {
