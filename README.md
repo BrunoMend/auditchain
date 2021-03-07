@@ -25,8 +25,6 @@ indexPatterns = indexPattern1*, indexPattern2*, indexPatternN*
 frequency = 25
 # delay in seconds
 delay = 10
-# tryAgayTimeout in minutes 
-tryAgainTimeout = 30
 # maxTimeInterval in hours
 maxTimeInterval = 24
 # keys to sign data

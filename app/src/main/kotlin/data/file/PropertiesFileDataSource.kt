@@ -27,7 +27,6 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                 AttestationConfigurationFM(
                     it.getProperty("frequency").toLong(),
                     it.getProperty("delay").toLong(),
-                    it.getProperty("tryAgainTimeout").toLong(),
                     it.getProperty("maxTimeInterval").toLong(),
                     it.getProperty("signingKey"),
                     it.getProperty("verifyKey")

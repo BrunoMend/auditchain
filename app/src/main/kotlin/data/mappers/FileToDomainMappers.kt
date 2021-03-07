@@ -18,7 +18,6 @@ fun AttestationConfigurationFM.toDomain(signingKeyByteArray: ByteArray, verifyKe
     AttestationConfiguration(
         frequency,
         delay,
-        tryAgainTimeout,
         maxTimeInterval,
         SigningKey(signingKeyByteArray),
         VerifyKey(verifyKeyByteArray)

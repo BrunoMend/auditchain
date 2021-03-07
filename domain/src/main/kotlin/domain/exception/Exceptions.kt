@@ -48,14 +48,6 @@ class NoAttestationException(source: Source, sourceParams: Map<SourceParam, Stri
         Level.INFO
     )
 
-class NoDataToStampException(timeInterval: TimeInterval, source: Source, sourceParams: Map<SourceParam, String>?) :
-    ExpectedException(
-        "No data to stamp from:\n" +
-                "Interval: $timeInterval\n" +
-                "Source $source\n" +
-                sourceParams?.toKeyValueString(), Level.INFO
-    )
-
 class MaxTimeIntervalExceededException(timeInterval: TimeInterval) :
     ExpectedException("The maximum time interval has been exceeded by $timeInterval", Level.INFO)
 
