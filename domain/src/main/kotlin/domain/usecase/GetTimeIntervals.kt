@@ -1,6 +1,5 @@
 package domain.usecase
 
-import domain.exception.MaxTimeIntervalExceededException
 import domain.model.AttestationConfiguration
 import domain.model.TimeInterval
 import domain.utility.getNextTimeInterval
@@ -18,9 +17,6 @@ class GetTimeIntervals @Inject constructor(
                 getPreviousTimeInterval(request.startAt, attestationConfiguration.frequencyMillis, false)
             val finishMomentInterval: Long =
                 getNextTimeInterval(request.finishIn, attestationConfiguration.frequencyMillis, false)
-
-            if (finishMomentInterval - firstMomentInterval > attestationConfiguration.maxTimeIntervalMillis)
-                throw MaxTimeIntervalExceededException(TimeInterval(firstMomentInterval, finishMomentInterval))
 
             val intervalList = mutableListOf<TimeInterval>()
             var interval: Long = firstMomentInterval

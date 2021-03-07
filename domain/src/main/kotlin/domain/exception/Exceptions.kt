@@ -48,9 +48,6 @@ class NoAttestationException(source: Source, sourceParams: Map<SourceParam, Stri
         Level.INFO
     )
 
-class MaxTimeIntervalExceededException(timeInterval: TimeInterval) :
-    ExpectedException("The maximum time interval has been exceeded by $timeInterval", Level.INFO)
-
 class HttpServerException(code: Int) :
     ExpectedException("Server error on get data. Status-code: $code", Level.WARNING)
 

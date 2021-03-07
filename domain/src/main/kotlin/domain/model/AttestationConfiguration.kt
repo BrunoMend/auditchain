@@ -6,7 +6,6 @@ import domain.cryptography.VerifyKey
 data class AttestationConfiguration(
     val frequency: Long,
     val delay: Long,
-    val maxTimeInterval: Long,
     val signingKey: SigningKey,
     val verifyKey: VerifyKey
 ) {
@@ -15,7 +14,4 @@ data class AttestationConfiguration(
 
     val delayMillis: Long
         get() = delay * 1000
-
-    val maxTimeIntervalMillis: Long
-        get() = maxTimeInterval * 3600000
 }
