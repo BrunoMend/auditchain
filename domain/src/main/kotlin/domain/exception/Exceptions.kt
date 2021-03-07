@@ -4,6 +4,8 @@ import domain.model.Attestation
 import domain.model.Source
 import domain.model.SourceParam
 import domain.model.TimeInterval
+import domain.utility.UI_DATE_FORMAT
+import domain.utility.toDateFormat
 import domain.utility.toKeyValueString
 import java.util.logging.Level
 
@@ -55,3 +57,9 @@ class HttpClientException(code: Int) :
     ExpectedException("Client error on get data. Status-code: $code", Level.WARNING)
 
 class NoInternetException : ExpectedException("Fail to get data. Verify your internet connection.", Level.WARNING)
+
+class TimeShorterThanCurrentWithDelayException(momentTime: Long, momentTimeWithDelay: Long) : ExpectedException(
+    "Stamp data from start at ${momentTime.toDateFormat(UI_DATE_FORMAT)} " +
+            "must be called after ${(momentTimeWithDelay).toDateFormat(UI_DATE_FORMAT)}",
+    Level.WARNING
+)

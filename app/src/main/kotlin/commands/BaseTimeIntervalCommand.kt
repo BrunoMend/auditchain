@@ -3,6 +3,7 @@ package commands
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
+import domain.exception.TimeShorterThanCurrentWithDelayException
 import domain.model.AttestationConfiguration
 import domain.model.Source
 import domain.usecase.GetLastStampedTime
@@ -22,52 +23,63 @@ abstract class BaseTimeIntervalCommand(
     protected val startAt: Long
             by option(help = "Start moment to realize stamps")
                 .convert("LONG") {
-                    try {
-                        val result = getPreviousTimeInterval(
-                            it.toDateMillis(UI_DATE_FORMAT),
-                            attestationConfiguration.frequencyMillis,
-                            false
-                        )
-                        val startAtWithDelayMillis = result + attestationConfiguration.delayMillis
-                        if (startAtWithDelayMillis > System.currentTimeMillis())
-                            fail(
-                                "Stamp data from start at ${result.toDateFormat(UI_DATE_FORMAT)} must be called after " +
-                                        (startAtWithDelayMillis).toDateFormat(UI_DATE_FORMAT)
-                            )
-                        else result
+                    val formattedDate = try {
+                        it.toDateMillis(UI_DATE_FORMAT)
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
                     }
+
+                    val previousInterval = try {
+                        getPreviousTimeInterval(
+                            formattedDate,
+                            attestationConfiguration.frequencyMillis,
+                            attestationConfiguration.delayMillis,
+                            false
+                        )
+                    } catch (e: TimeShorterThanCurrentWithDelayException) {
+                        fail(e.message!!)
+                    }
+
+                    previousInterval
                 }.default(getDefaultStartDate())
 
     protected val finishIn: Long
             by option(help = "Finish moment to realize stamps")
                 .convert("LONG") {
-                    try {
-                        val result = getNextTimeInterval(
-                            it.toDateMillis(UI_DATE_FORMAT),
-                            attestationConfiguration.frequencyMillis,
-                            false
-                        )
-                        if (startAt >= result) fail("Finish date must be greater than start date")
-                        val finishInWithDelayMillis = result + attestationConfiguration.delayMillis
-                        if (finishInWithDelayMillis > System.currentTimeMillis())
-                            fail(
-                                "Stamp data from finish in ${result.toDateFormat(UI_DATE_FORMAT)} must be called after " +
-                                        (finishInWithDelayMillis).toDateFormat(UI_DATE_FORMAT)
-                            )
-                        else result
+                    val formattedDate = try {
+                        it.toDateMillis(UI_DATE_FORMAT)
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
                     }
-                }.default(getPreviousTimeInterval(System.currentTimeMillis(), attestationConfiguration.frequencyMillis))
+
+                    val nextInterval = try {
+                        getNextTimeInterval(
+                            formattedDate,
+                            attestationConfiguration.frequencyMillis,
+                            attestationConfiguration.delayMillis,
+                            false
+                        )
+                    } catch (e: TimeShorterThanCurrentWithDelayException) {
+                        fail(e.message!!)
+                    }
+
+                    if (startAt >= nextInterval) fail("Finish date must be greater than start date")
+                    nextInterval
+                }.default(
+                    getPreviousTimeInterval(
+                        System.currentTimeMillis(),
+                        attestationConfiguration.frequencyMillis,
+                        attestationConfiguration.delayMillis
+                    )
+                )
 
     private fun getDefaultStartDate(): Long =
         getLastStampedTime.getSingle(GetLastStampedTime.Request(Source.ELASTICSEARCH))
             .onErrorReturn {
                 getPreviousTimeInterval(
                     System.currentTimeMillis() - attestationConfiguration.frequencyMillis,
-                    attestationConfiguration.frequencyMillis
+                    attestationConfiguration.frequencyMillis,
+                    attestationConfiguration.delayMillis
                 )
             }
             .blockingGet()

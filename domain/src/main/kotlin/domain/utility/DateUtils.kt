@@ -1,5 +1,6 @@
 package domain.utility
 
+import domain.exception.TimeShorterThanCurrentWithDelayException
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneOffset
@@ -28,24 +29,53 @@ fun getMomentMillisOfDay(moment: Long): Long {
     }
 }
 
-fun getNextTimeInterval(moment: Long, frequencyMillis: Long, disregardCurrent: Boolean = true): Long {
+/**
+ * Get the next time interval from the moment given the frequencyMillis and the delayMillis
+ */
+fun getNextTimeInterval(
+    moment: Long,
+    frequencyMillis: Long,
+    delayMillis: Long,
+    disregardCurrent: Boolean = true
+): Long {
     val momentMillisOfDay = getMomentMillisOfDay(moment)
     val momentDayMidnight = moment - momentMillisOfDay
     val millisToAdd = momentMillisOfDay.rem(frequencyMillis)
-    return when {
+    val resultMoment = when {
         momentMillisOfDay > (MILLIS_IN_A_DAY - frequencyMillis) -> momentDayMidnight + MILLIS_IN_A_DAY
         millisToAdd == 0L -> if (disregardCurrent) moment + frequencyMillis else moment
         else -> moment - millisToAdd + frequencyMillis
     }
+    validateMomentWithDelay(resultMoment, delayMillis)
+    return resultMoment
 }
 
-fun getPreviousTimeInterval(moment: Long, frequencyMillis: Long, disregardCurrent: Boolean = true): Long {
+/**
+ * Get the previous time interval from the moment given the frequencyMillis and the delayMillis
+ */
+fun getPreviousTimeInterval(
+    moment: Long,
+    frequencyMillis: Long,
+    delayMillis: Long,
+    disregardCurrent: Boolean = true
+): Long {
     val momentMillisOfDay = getMomentMillisOfDay(moment)
     val momentDayMidnight = moment - momentMillisOfDay
     val millisToDeduct = momentMillisOfDay.rem(frequencyMillis)
-    return when {
+    val resultMoment = when {
         momentMillisOfDay < frequencyMillis -> momentDayMidnight
         millisToDeduct == 0L -> if (disregardCurrent) moment - frequencyMillis else moment
         else -> moment - millisToDeduct
     }
+    validateMomentWithDelay(resultMoment, delayMillis)
+    return resultMoment
+}
+
+/**
+ * Validate if the momentMillis is less than current moment with the delayMillis
+ */
+fun validateMomentWithDelay(momentMillis: Long, delayMillis: Long) {
+    val momentWithDelayMillis = momentMillis + delayMillis
+    if (momentWithDelayMillis > System.currentTimeMillis())
+        throw TimeShorterThanCurrentWithDelayException(momentMillis, momentWithDelayMillis)
 }
