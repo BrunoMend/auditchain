@@ -23,11 +23,18 @@ abstract class BaseTimeIntervalCommand(
             by option(help = "Start moment to realize stamps")
                 .convert("LONG") {
                     try {
-                        getPreviousTimeInterval(
+                        val result = getPreviousTimeInterval(
                             it.toDateMillis(UI_DATE_FORMAT),
                             attestationConfiguration.frequencyMillis,
                             false
                         )
+                        val startAtWithDelayMillis = result + attestationConfiguration.delayMillis
+                        if (startAtWithDelayMillis > System.currentTimeMillis())
+                            fail(
+                                "Stamp data from start at ${result.toDateFormat(UI_DATE_FORMAT)} must be called after " +
+                                        (startAtWithDelayMillis).toDateFormat(UI_DATE_FORMAT)
+                            )
+                        else result
                     } catch (e: ParseException) {
                         fail("Date must be $UI_DATE_FORMAT")
                     }
@@ -43,10 +50,11 @@ abstract class BaseTimeIntervalCommand(
                             false
                         )
                         if (startAt >= result) fail("Finish date must be greater than start date")
-                        if (result + attestationConfiguration.delayMillis > System.currentTimeMillis())
+                        val finishInWithDelayMillis = result + attestationConfiguration.delayMillis
+                        if (finishInWithDelayMillis > System.currentTimeMillis())
                             fail(
                                 "Stamp data from finish in ${result.toDateFormat(UI_DATE_FORMAT)} must be called after " +
-                                        (result + attestationConfiguration.delayMillis).toDateFormat(UI_DATE_FORMAT)
+                                        (finishInWithDelayMillis).toDateFormat(UI_DATE_FORMAT)
                             )
                         else result
                     } catch (e: ParseException) {
