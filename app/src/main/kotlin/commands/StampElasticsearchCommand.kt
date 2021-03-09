@@ -3,12 +3,10 @@ package commands
 import domain.model.Attestation
 import domain.model.AttestationConfiguration
 import domain.usecase.GetLastStampedTime
-import domain.usecase.ProcessAllElasticsearchStampExceptions
 import domain.usecase.StampElasticsearchDataByInterval
 import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.utility.UI_DATE_FORMAT
 import domain.utility.toDateFormat
-import io.reactivex.rxjava3.core.Observable
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 
@@ -17,7 +15,6 @@ class StampElasticsearchCommand @Inject constructor(
     getLastStampedTime: GetLastStampedTime,
     client: OkHttpClient,
     private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
-    private val processAllElasticsearchStampExceptions: ProcessAllElasticsearchStampExceptions,
     private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval
 ) : BaseTimeIntervalCommand(client, attestationConfiguration, getLastStampedTime) {
 
@@ -27,21 +24,11 @@ class StampElasticsearchCommand @Inject constructor(
         updateAllIncompleteAttestationsOtsData.getCompletable(Unit)
             .doOnSubscribe { printVerbose("Updating OTS data from previous stamps...") }
             .andThen(
-                Observable.concat(
-                    processAllElasticsearchStampExceptions.getObservable(Unit)
-                        .doOnSubscribe { printVerbose("Checking for stamp exceptions to try again...") }
-                        .doOnNext { result ->
-                            if (result.isSuccess) printStampSuccess(result.getOrThrow())
-                            else result.exceptionOrNull()?.printError()
-                        },
-                    stampElasticsearchDataByInterval
-                        .getObservable(StampElasticsearchDataByInterval.Request(startAt, finishIn))
-                        .doOnSubscribe { printVerbose("Stamping data from: $uiStartAt to $uiFinishIn") }
-                        .doOnNext { result ->
-                            if (result.isSuccess) printStampSuccess(result.getOrThrow())
-                            else result.exceptionOrNull()?.printError()
-                        }
-                ))
+                stampElasticsearchDataByInterval
+                    .getObservable(StampElasticsearchDataByInterval.Request(startAt, finishIn))
+                    .doOnSubscribe { printVerbose("Stamping data from: $uiStartAt to $uiFinishIn") }
+                    .doOnNext { result -> printStampSuccess(result) }
+            )
             .doOnComplete {
                 releaseResources()
                 printProcessCompleted()

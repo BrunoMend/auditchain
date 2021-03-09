@@ -11,9 +11,9 @@ class StampElasticsearchData @Inject constructor(
     private val saveAttestation: SaveAttestation,
     private val saveStampException: SaveStampException,
     private val buildStampException: BuildStampException
-) : SingleUseCase<Result<Attestation>, StampElasticsearchData.Request>() {
+) : SingleUseCase<Attestation, StampElasticsearchData.Request>() {
 
-    override fun getRawSingle(request: Request): Single<Result<Attestation>> =
+    override fun getRawSingle(request: Request): Single<Attestation> =
         Single.just(request)
             .flatMap { requestData ->
                 validateNoAttestationExists
@@ -48,9 +48,8 @@ class StampElasticsearchData @Inject constructor(
                                     .andThen(Single.just(attestation))
                             }
                     }
-                    .map { Result.success(it) }
             }
-            .onErrorResumeNext { error ->
+            .doOnError { error ->
                 buildStampException.getRawSingle(
                     BuildStampException.Request(
                         request.timeInterval,
@@ -60,7 +59,6 @@ class StampElasticsearchData @Inject constructor(
                     )
                 )
                     .flatMapCompletable { saveStampException.getRawCompletable(SaveStampException.Request(it)) }
-                    .andThen(Single.just(Result.failure(error)))
             }
 
     data class Request(val indexPattern: String, val timeInterval: TimeInterval)

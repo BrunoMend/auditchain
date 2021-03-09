@@ -9,9 +9,9 @@ class StampElasticsearchDataByInterval @Inject constructor(
     private val getTimeIntervals: GetTimeIntervals,
     private val stampElasticsearchData: StampElasticsearchData,
     private val elasticsearchConfiguration: ElasticsearchConfiguration
-) : ObservableUseCase<Result<Attestation>, StampElasticsearchDataByInterval.Request>() {
+) : ObservableUseCase<Attestation, StampElasticsearchDataByInterval.Request>() {
 
-    override fun getRawObservable(request: Request): Observable<Result<Attestation>> =
+    override fun getRawObservable(request: Request): Observable<Attestation> =
         getTimeIntervals.getRawSingle(GetTimeIntervals.Request(request.startAt, request.finishIn))
             .flatMapObservable { Observable.fromIterable(it) }
             .flatMap { timeInterval ->
