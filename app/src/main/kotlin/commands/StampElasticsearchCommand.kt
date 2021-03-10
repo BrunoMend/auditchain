@@ -17,6 +17,8 @@ class StampElasticsearchCommand @Inject constructor(
     private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
     private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval
 ) : BaseTimeIntervalCommand(client, attestationConfiguration, getLastStampedTime) {
+    override val ignoreStartAtIfAlreadyExistsStamps: Boolean
+        get() = true
 
     override fun run() {
         super.run()
