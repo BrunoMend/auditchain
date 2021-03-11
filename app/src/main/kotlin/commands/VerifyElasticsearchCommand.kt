@@ -1,39 +1,93 @@
 package commands
 
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
+import domain.exception.TimeShorterThanCurrentWithDelayException
 import domain.model.AttestationConfiguration
 import domain.model.AttestationVerifyResult
-import domain.model.Source
-import domain.usecase.GetLastStampedTime
 import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.usecase.VerifyElasticsearchDataByInterval
-import domain.utility.UI_DATE_FORMAT
-import domain.utility.toDateFormat
+import domain.utility.*
 import okhttp3.OkHttpClient
+import java.text.ParseException
 import javax.inject.Inject
 
 class VerifyElasticsearchCommand @Inject constructor(
     attestationConfiguration: AttestationConfiguration,
-    getLastStampedTime: GetLastStampedTime,
     client: OkHttpClient,
     private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
     private val verifyElasticsearchDataByInterval: VerifyElasticsearchDataByInterval
-) : BaseTimeIntervalCommand(client, attestationConfiguration, getLastStampedTime) {
+) : BaseCommand(client) {
 
-    override val ignoreStartAtIfAlreadyExistsStamps: Boolean
-        get() = false
+    private val startAt: Long
+            by option(help = "Start moment to realize stamps")
+                .convert("LONG") { passedStartDate ->
 
-    override val source: Source
-        get() = Source.ELASTICSEARCH
+                    val formattedDate = try {
+                        passedStartDate.toDateMillis(UI_DATE_FORMAT)
+                    } catch (e: ParseException) {
+                        fail("Date must be $UI_DATE_FORMAT")
+                    }
+
+                    val previousInterval = try {
+                        getPreviousTimeInterval(
+                            formattedDate,
+                            attestationConfiguration.frequencyMillis,
+                            attestationConfiguration.delayMillis,
+                            false
+                        )
+                    } catch (e: TimeShorterThanCurrentWithDelayException) {
+                        fail(e.message!!)
+                    }
+
+                    previousInterval
+                }.required()
+
+    private val finishIn: Long
+            by option(help = "Finish moment to verify stamps")
+                .convert("LONG") {
+                    val formattedDate = try {
+                        it.toDateMillis(UI_DATE_FORMAT)
+                    } catch (e: ParseException) {
+                        fail("Date must be $UI_DATE_FORMAT")
+                    }
+
+                    val nextInterval = try {
+                        getNextTimeInterval(
+                            formattedDate,
+                            attestationConfiguration.frequencyMillis,
+                            attestationConfiguration.delayMillis,
+                            false
+                        )
+                    } catch (e: TimeShorterThanCurrentWithDelayException) {
+                        fail(e.message!!)
+                    }
+
+                    if (startAt >= nextInterval) fail("Finish date must be greater than start date")
+                    nextInterval
+                }.default(
+                    getPreviousTimeInterval(
+                        System.currentTimeMillis(),
+                        attestationConfiguration.frequencyMillis,
+                        attestationConfiguration.delayMillis
+                    )
+                )
 
     override fun run() {
-        super.run()
 
         updateAllIncompleteAttestationsOtsData.getCompletable(Unit)
             .doOnSubscribe { printVerbose("Updating OTS data from previous stamps...") }
             .andThen(
                 verifyElasticsearchDataByInterval
                     .getObservable(VerifyElasticsearchDataByInterval.Request(startAt, finishIn))
-                    .doOnSubscribe { printVerbose("Verifying data from: $uiStartAt to $uiFinishIn") }
+                    .doOnSubscribe {
+                        printVerbose(
+                            "Verifying data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
+                                    "to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
+                        )
+                    }
                     .doOnError { it.printError() }
                     .doOnNext { result ->
                         if (result.isSuccess) printVerifySuccess(result.getOrThrow())
