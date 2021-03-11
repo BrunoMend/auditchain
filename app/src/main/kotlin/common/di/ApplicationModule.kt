@@ -82,10 +82,6 @@ class ApplicationModule {
             : TimestampDataRepository = timestampRepository
 
     @Provides
-    fun fileDataRepository(fileRepository: FileRepository)
-            : FileDataRepository = fileRepository
-
-    @Provides
     fun attestationDataRepository(attestationRepository: AttestationRepository)
             : AttestationDataRepository = attestationRepository
 

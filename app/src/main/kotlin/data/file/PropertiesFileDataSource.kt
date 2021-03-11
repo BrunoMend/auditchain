@@ -17,7 +17,7 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                     it.getProperty("elasticHost"),
                     it.getProperty("elasticUser"),
                     it.getProperty("elasticPwds"),
-                    it.getProperty("indexPatterns")
+                    it.getProperty("indexPattern")
                 )
             }
 

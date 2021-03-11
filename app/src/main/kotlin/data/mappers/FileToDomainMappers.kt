@@ -12,7 +12,8 @@ fun ElasticsearchConfigurationFM.toDomain() =
         elasticHost,
         elasticUser,
         elasticPwds,
-        indexPattern.split(","))
+        indexPattern
+    )
 
 fun AttestationConfigurationFM.toDomain(signingKeyByteArray: ByteArray, verifyKeyByteArray: ByteArray) =
     AttestationConfiguration(

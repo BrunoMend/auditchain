@@ -10,7 +10,7 @@ class GetElasticsearchData @Inject constructor(
 ) : SingleUseCase<ByteArray, GetElasticsearchData.Request>() {
 
     override fun getRawSingle(request: Request): Single<ByteArray> =
-        elasticsearchDataRepository.getElasticsearchData(request.indexPattern, request.timeInterval)
+        elasticsearchDataRepository.getElasticsearchData(request.timeInterval)
 
-    data class Request(val indexPattern: String, val timeInterval: TimeInterval)
+    data class Request(val timeInterval: TimeInterval)
 }

@@ -1,37 +1,35 @@
 package domain.usecase
 
+import domain.exception.errorName
 import domain.model.*
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class StampElasticsearchData @Inject constructor(
-    private val validateNoAttestationExists: ValidateNoAttestationExists,
+    private val getLastAttestationDataSignature: GetLastAttestationDataSignature,
     private val getElasticsearchData: GetElasticsearchData,
     private val stampData: StampData,
     private val saveAttestation: SaveAttestation,
     private val saveStampException: SaveStampException,
-    private val buildStampException: BuildStampException
 ) : SingleUseCase<Attestation, StampElasticsearchData.Request>() {
 
     override fun getRawSingle(request: Request): Single<Attestation> =
         Single.just(request)
             .flatMap { requestData ->
-                validateNoAttestationExists
-                    .getCompletable(
-                        ValidateNoAttestationExists.Request(
+                getLastAttestationDataSignature
+                    .getSingle(
+                        GetLastAttestationDataSignature.Request(
                             Source.ELASTICSEARCH,
                             requestData.timeInterval,
-                            mapOf(Pair(SourceParam.INDEX_PATTERN, requestData.indexPattern))
                         )
                     )
-                    .andThen(
+                    .flatMap { lastAttestationDataSignature ->
                         getElasticsearchData.getRawSingle(
                             GetElasticsearchData.Request(
-                                requestData.indexPattern,
                                 requestData.timeInterval
                             )
-                        )
-                    )
+                        ).map { it.plus(lastAttestationDataSignature) }
+                    }
                     .flatMap { data ->
                         stampData.getRawSingle(StampData.Request(TimestampData(requestData.timeInterval, data)))
                             .flatMap { timestampResult ->
@@ -39,7 +37,6 @@ class StampElasticsearchData @Inject constructor(
                                     Attestation(
                                         requestData.timeInterval,
                                         Source.ELASTICSEARCH,
-                                        mapOf(Pair(SourceParam.INDEX_PATTERN, requestData.indexPattern)),
                                         System.currentTimeMillis(),
                                         timestampResult.dataSignature,
                                         timestampResult.otsData
@@ -50,16 +47,17 @@ class StampElasticsearchData @Inject constructor(
                     }
             }
             .doOnError { error ->
-                buildStampException.getRawSingle(
-                    BuildStampException.Request(
-                        request.timeInterval,
-                        error,
-                        Source.ELASTICSEARCH,
-                        mapOf(Pair(SourceParam.INDEX_PATTERN, request.indexPattern))
+                saveStampException.getRawCompletable(
+                    SaveStampException.Request(
+                        StampException(
+                            request.timeInterval,
+                            Source.ELASTICSEARCH,
+                            error.errorName,
+                            System.currentTimeMillis(),
+                        )
                     )
                 )
-                    .flatMapCompletable { saveStampException.getRawCompletable(SaveStampException.Request(it)) }
             }
 
-    data class Request(val indexPattern: String, val timeInterval: TimeInterval)
+    data class Request(val timeInterval: TimeInterval)
 }

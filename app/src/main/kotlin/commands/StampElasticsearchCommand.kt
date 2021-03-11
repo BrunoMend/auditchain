@@ -2,6 +2,7 @@ package commands
 
 import domain.model.Attestation
 import domain.model.AttestationConfiguration
+import domain.model.Source
 import domain.usecase.GetLastStampedTime
 import domain.usecase.StampElasticsearchDataByInterval
 import domain.usecase.UpdateAllIncompleteAttestationsOtsData
@@ -17,8 +18,12 @@ class StampElasticsearchCommand @Inject constructor(
     private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
     private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval
 ) : BaseTimeIntervalCommand(client, attestationConfiguration, getLastStampedTime) {
+
     override val ignoreStartAtIfAlreadyExistsStamps: Boolean
         get() = true
+
+    override val source: Source
+        get() = Source.ELASTICSEARCH
 
     override fun run() {
         super.run()

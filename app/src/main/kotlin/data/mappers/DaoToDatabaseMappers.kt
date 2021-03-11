@@ -2,18 +2,16 @@ package data.mappers
 
 import data.database.infrastructure.dao.AttestationDao
 import data.database.infrastructure.dao.StampExceptionDao
-import data.database.infrastructure.toMap
 import data.database.model.AttestationDM
 import data.database.model.StampExceptionDM
 
-// All methods involving DAOs must be called within a transaction
+// ***** All methods involving DAOs must be called within a transaction ******
 
 fun AttestationDao.toDatabaseModel(): AttestationDM =
     AttestationDM(
         dateStart,
         dateEnd,
         dataSource,
-        sourceParams?.toMap(),
         dateTimestamp,
         dataSignature.bytes,
         otsData.bytes,
@@ -26,9 +24,7 @@ fun StampExceptionDao.toDatabaseModel(): StampExceptionDM =
         dateStart,
         dateEnd,
         dataSource,
-        sourceParams?.toMap(),
         exception,
         dateException,
-        processed,
         id.value
     )

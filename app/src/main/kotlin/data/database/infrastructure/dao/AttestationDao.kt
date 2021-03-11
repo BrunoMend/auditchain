@@ -11,7 +11,6 @@ class AttestationDao (id: EntityID<Long>) : LongEntity(id) {
     var dateStart by TableAttestation.dateStart
     var dateEnd by TableAttestation.dateEnd
     var dataSource by TableAttestation.dataSource
-    var sourceParams by TableAttestation.sourceParams
     var dateTimestamp by TableAttestation.dateTimestamp
     var dataSignature by TableAttestation.dataSignature
     var otsData by TableAttestation.otsData

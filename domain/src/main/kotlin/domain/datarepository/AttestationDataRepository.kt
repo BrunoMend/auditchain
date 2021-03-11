@@ -2,7 +2,6 @@ package domain.datarepository
 
 import domain.model.Attestation
 import domain.model.Source
-import domain.model.SourceParam
 import domain.model.TimeInterval
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
@@ -12,7 +11,10 @@ interface AttestationDataRepository {
     fun getAttestation(
         timeInterval: TimeInterval,
         source: Source,
-        sourceParams: Map<SourceParam, String>?
+    ): Single<Attestation>
+
+    fun getLastAttestation(
+        source: Source,
     ): Single<Attestation>
 
     fun getIncompleteOtsAttestations(): Single<List<Attestation>>

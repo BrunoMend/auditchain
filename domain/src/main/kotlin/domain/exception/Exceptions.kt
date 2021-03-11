@@ -2,11 +2,9 @@ package domain.exception
 
 import domain.model.Attestation
 import domain.model.Source
-import domain.model.SourceParam
 import domain.model.TimeInterval
 import domain.utility.UI_DATE_FORMAT
 import domain.utility.toDateFormat
-import domain.utility.toKeyValueString
 import java.util.logging.Level
 
 abstract class ExpectedException(message: String, val loggerLevel: Level) : Exception(message)
@@ -35,18 +33,17 @@ class BadAttestationException(attestation: Attestation) :
         Level.SEVERE
     )
 
-class AttestationAlreadyExistsException(attestation: Attestation) :
+class InvalidTimeIntervalException(wrongTimeInterval: TimeInterval, expectedTimeInterval: TimeInterval) :
     ExpectedException(
-        "Attestation already exists from:\n$attestation",
-        Level.INFO
+        "The time interval $wrongTimeInterval is wrong. The expected time interval is $expectedTimeInterval",
+        Level.WARNING
     )
 
-class NoAttestationException(source: Source, sourceParams: Map<SourceParam, String>?, timeInterval: TimeInterval?) :
+class NoAttestationException(source: Source, timeInterval: TimeInterval?) :
     ExpectedException(
         "No attestation found from:\n" +
                 (if (timeInterval != null) "Interval: $timeInterval\n" else "") +
-                "Source $source\n" +
-                sourceParams?.toKeyValueString(),
+                "Source $source\n",
         Level.INFO
     )
 

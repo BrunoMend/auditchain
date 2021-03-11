@@ -1,6 +1,9 @@
 package domain.usecase
 
-import domain.model.*
+import domain.model.AttestationVerifyResult
+import domain.model.Source
+import domain.model.TimeInterval
+import domain.model.TimestampData
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
@@ -16,14 +19,12 @@ class VerifyElasticsearchData @Inject constructor(
                 getAttestation.getSingle(
                     GetAttestation.Request(
                         Source.ELASTICSEARCH,
-                        requestData.timeInterval,
-                        mapOf(Pair(SourceParam.INDEX_PATTERN, requestData.indexPattern))
+                        requestData.timeInterval
                     )
                 )
                     .flatMap { attestation ->
                         getElasticsearchData.getRawSingle(
                             GetElasticsearchData.Request(
-                                requestData.indexPattern,
                                 requestData.timeInterval
                             )
                         )
@@ -40,5 +41,5 @@ class VerifyElasticsearchData @Inject constructor(
                     }
             }.onErrorResumeNext { Single.just(Result.failure(it)) }
 
-    data class Request(val indexPattern: String, val timeInterval: TimeInterval)
+    data class Request(val timeInterval: TimeInterval)
 }

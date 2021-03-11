@@ -22,6 +22,7 @@ abstract class BaseTimeIntervalCommand(
     protected val uiFinishIn: String by lazy { finishIn.toDateFormat(UI_DATE_FORMAT) }
 
     protected abstract val ignoreStartAtIfAlreadyExistsStamps: Boolean
+    protected abstract val source: Source
 
     protected val startAt: Long
             by option(help = "Start moment to realize stamps")
@@ -104,7 +105,7 @@ abstract class BaseTimeIntervalCommand(
             .blockingGet()
 
     private fun getStartDateBasedOnPreviousStamp(): Single<Long> =
-        getLastStampedTime.getSingle(GetLastStampedTime.Request(Source.ELASTICSEARCH))
+        getLastStampedTime.getSingle(GetLastStampedTime.Request(source))
 
     override fun run() {
         if (startAt >= finishIn) {

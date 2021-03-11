@@ -18,7 +18,6 @@ interface ApplicationComponent {
     fun elasticsearchRepository(): ElasticsearchDataRepository
     fun configurationRepository(): ConfigurationDataRepository
     fun timestampRepository(): TimestampDataRepository
-    fun fileRepository(): FileDataRepository
     fun attestationRepository(): AttestationDataRepository
     fun inject(applicationCommand: ApplicationCommand)
 }
