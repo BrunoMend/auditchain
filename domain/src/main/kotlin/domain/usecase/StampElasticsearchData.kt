@@ -6,44 +6,32 @@ import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class StampElasticsearchData @Inject constructor(
-    private val getLastAttestationDataSignature: GetLastAttestationDataSignature,
-    private val getElasticsearchData: GetElasticsearchData,
+    private val getConcatenatedElasticsearchData: GetConcatenatedElasticsearchData,
     private val stampData: StampData,
     private val saveAttestation: SaveAttestation,
     private val saveStampException: SaveStampException,
 ) : SingleUseCase<Attestation, StampElasticsearchData.Request>() {
 
     override fun getRawSingle(request: Request): Single<Attestation> =
-        Single.just(request)
-            .flatMap { requestData ->
-                getLastAttestationDataSignature
-                    .getSingle(
-                        GetLastAttestationDataSignature.Request(
-                            Source.ELASTICSEARCH,
-                            requestData.timeInterval,
-                        )
-                    )
-                    .flatMap { lastAttestationDataSignature ->
-                        getElasticsearchData.getRawSingle(
-                            GetElasticsearchData.Request(
-                                requestData.timeInterval
+        getConcatenatedElasticsearchData
+            .getSingle(
+                GetConcatenatedElasticsearchData.Request(
+                    request.timeInterval,
+                )
+            )
+            .flatMap { data ->
+                stampData.getRawSingle(StampData.Request(TimestampData(request.timeInterval, data)))
+                    .flatMap { timestampResult ->
+                        val attestation =
+                            Attestation(
+                                request.timeInterval,
+                                Source.ELASTICSEARCH,
+                                System.currentTimeMillis(),
+                                timestampResult.dataSignature,
+                                timestampResult.otsData
                             )
-                        ).map { it.plus(lastAttestationDataSignature) }
-                    }
-                    .flatMap { data ->
-                        stampData.getRawSingle(StampData.Request(TimestampData(requestData.timeInterval, data)))
-                            .flatMap { timestampResult ->
-                                val attestation =
-                                    Attestation(
-                                        requestData.timeInterval,
-                                        Source.ELASTICSEARCH,
-                                        System.currentTimeMillis(),
-                                        timestampResult.dataSignature,
-                                        timestampResult.otsData
-                                    )
-                                saveAttestation.getRawCompletable(SaveAttestation.Request(attestation))
-                                    .andThen(Single.just(attestation))
-                            }
+                        saveAttestation.getRawCompletable(SaveAttestation.Request(attestation))
+                            .andThen(Single.just(attestation))
                     }
             }
             .doOnError { error ->

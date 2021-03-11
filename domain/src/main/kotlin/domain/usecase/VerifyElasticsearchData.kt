@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 class VerifyElasticsearchData @Inject constructor(
     private val getAttestation: GetAttestation,
-    private val getElasticsearchData: GetElasticsearchData,
+    private val getConcatenatedElasticsearchData: GetConcatenatedElasticsearchData,
     private val verifyStamp: VerifyStamp
 ) : SingleUseCase<Result<AttestationVerifyResult>, VerifyElasticsearchData.Request>() {
 
@@ -23,8 +23,8 @@ class VerifyElasticsearchData @Inject constructor(
                     )
                 )
                     .flatMap { attestation ->
-                        getElasticsearchData.getRawSingle(
-                            GetElasticsearchData.Request(
+                        getConcatenatedElasticsearchData.getRawSingle(
+                            GetConcatenatedElasticsearchData.Request(
                                 requestData.timeInterval
                             )
                         )
