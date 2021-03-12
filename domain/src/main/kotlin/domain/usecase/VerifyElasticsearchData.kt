@@ -1,5 +1,6 @@
 package domain.usecase
 
+import domain.datarepository.ElasticsearchDataRepository
 import domain.model.AttestationVerifyResult
 import domain.model.Source
 import domain.model.TimeInterval
@@ -9,7 +10,8 @@ import javax.inject.Inject
 
 class VerifyElasticsearchData @Inject constructor(
     private val getAttestation: GetAttestation,
-    private val getConcatenatedElasticsearchData: GetConcatenatedElasticsearchData,
+    private val getPreviousAttestationSignature: GetPreviousAttestationSignature,
+    private val elasticsearchDataRepository: ElasticsearchDataRepository,
     private val verifyStamp: VerifyStamp
 ) : SingleUseCase<Result<AttestationVerifyResult>, VerifyElasticsearchData.Request>() {
 
@@ -23,11 +25,16 @@ class VerifyElasticsearchData @Inject constructor(
                     )
                 )
                     .flatMap { attestation ->
-                        getConcatenatedElasticsearchData.getRawSingle(
-                            GetConcatenatedElasticsearchData.Request(
-                                requestData.timeInterval
-                            )
-                        )
+                        getPreviousAttestationSignature
+                            .getSingle(
+                                GetPreviousAttestationSignature.Request(
+                                    Source.ELASTICSEARCH,
+                                    request.timeInterval,
+                                )
+                            ).flatMap { lastAttestationDataSignature ->
+                                elasticsearchDataRepository.getElasticsearchData(request.timeInterval)
+                                    .map { it.plus(lastAttestationDataSignature) }
+                            }
                             .flatMap { originalData ->
                                 verifyStamp
                                     .getSingle(

@@ -51,7 +51,7 @@ class StampElasticsearchCommand @Inject constructor(
                         }
                         .flatMapCompletable { result ->
                             Completable.fromAction { printStampSuccess(result) }
-                        }
+                        }.onErrorComplete()
             )
             .doOnComplete {
                 releaseResources()

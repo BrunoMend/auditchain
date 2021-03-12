@@ -88,12 +88,13 @@ class VerifyElasticsearchCommand @Inject constructor(
                                     "to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
                         )
                     }
-                    .doOnError { it.printError() }
                     .doOnNext { result ->
                         if (result.isSuccess) printVerifySuccess(result.getOrThrow())
                         else result.exceptionOrNull()?.printError()
-                    })
-            .doOnComplete {
+                    }
+                    .doOnError { it.printError() }
+                    .onErrorComplete()
+            ).doOnComplete {
                 releaseResources()
                 printProcessCompleted()
             }
