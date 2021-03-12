@@ -7,14 +7,14 @@ import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
 class GetConcatenatedElasticsearchData @Inject constructor(
-    private val getLastAttestationDataSignature: GetLastAttestationDataSignature,
+    private val getLastAttestationDataSignatureOrDefault: GetLastAttestationDataSignatureOrDefault,
     private val elasticsearchDataRepository: ElasticsearchDataRepository
 ) : SingleUseCase<ByteArray, GetConcatenatedElasticsearchData.Request>() {
 
     override fun getRawSingle(request: Request): Single<ByteArray> =
-        getLastAttestationDataSignature
+        getLastAttestationDataSignatureOrDefault
             .getSingle(
-                GetLastAttestationDataSignature.Request(
+                GetLastAttestationDataSignatureOrDefault.Request(
                     Source.ELASTICSEARCH,
                     request.timeInterval,
                 )

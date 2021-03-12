@@ -19,5 +19,4 @@ interface AttestationDataRepository {
 
     fun getIncompleteOtsAttestations(): Single<List<Attestation>>
     fun updateOtsData(attestation: Attestation): Completable
-    fun getLastStampedTime(source: Source): Single<Long>
 }

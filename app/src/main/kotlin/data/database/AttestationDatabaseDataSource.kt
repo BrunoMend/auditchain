@@ -5,7 +5,9 @@ import data.database.infrastructure.dao.AttestationDao
 import data.database.model.AttestationDM
 import data.database.model.SourceDM
 import data.mappers.toDatabaseModel
+import data.mappers.toDomainModel
 import domain.di.IOScheduler
+import domain.exception.NoAttestationException
 import domain.utility.synchronize
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
@@ -73,13 +75,13 @@ class AttestationDatabaseDataSource @Inject constructor(
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
 
-    fun getLastAttestation(source: SourceDM): Single<AttestationDM?> =
+    fun getLastAttestation(source: SourceDM): Single<AttestationDM> =
         Single.fromCallable {
             transaction {
                 AttestationDao
                     .find { TableAttestation.dataSource eq source }
                     .maxByOrNull { it.dateEnd }
-                    ?.toDatabaseModel()
+                    ?.toDatabaseModel() ?: throw NoAttestationException(source.toDomainModel(), null)
             }
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)

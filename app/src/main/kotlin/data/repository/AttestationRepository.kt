@@ -39,7 +39,7 @@ class AttestationRepository @Inject constructor(
 
     override fun getLastAttestation(source: Source): Single<Attestation> =
         attestationDatabaseDataSource.getLastAttestation(source.toDatabaseModel())
-            .map { it?.toDomainModel() ?: throw NoAttestationException(source, null) }
+            .map { it.toDomainModel() }
 
     override fun getIncompleteOtsAttestations(): Single<List<Attestation>> =
         attestationDatabaseDataSource.getIncompleteOtsAttestations()
@@ -47,8 +47,4 @@ class AttestationRepository @Inject constructor(
 
     override fun updateOtsData(attestation: Attestation): Completable =
         attestationDatabaseDataSource.updateOtsData(attestation.toDatabaseModel())
-
-    override fun getLastStampedTime(source: Source): Single<Long> =
-        attestationDatabaseDataSource.getLastAttestation(source.toDatabaseModel())
-            .map { it?.dateEnd ?: throw NoAttestationException(source, null) }
 }

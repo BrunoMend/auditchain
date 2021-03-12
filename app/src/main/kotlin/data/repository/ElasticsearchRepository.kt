@@ -25,7 +25,7 @@ class ElasticsearchRepository @Inject constructor(
         return if (result.isNotEmpty() && result != "[]")
             result.toByteArray()
         else
-            byteArrayOf(0)
+            byteArrayOf()
     }
 
     private fun TimeInterval.toElasticsearchQuery() =
