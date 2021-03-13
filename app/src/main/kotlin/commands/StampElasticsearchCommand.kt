@@ -46,7 +46,7 @@ class StampElasticsearchCommand @Inject constructor(
                         .doOnSubscribe {
                             printVerbose(
                                 "Stamping data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
-                                        "to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
+                                        "to ${finishIn.toDateFormat(UI_DATE_FORMAT)} \n"
                             )
                         }
                         .flatMapCompletable { result ->

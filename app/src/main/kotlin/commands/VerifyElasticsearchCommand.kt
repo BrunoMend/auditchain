@@ -1,9 +1,6 @@
 package commands
 
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.options.*
 import domain.exception.TimeShorterThanCurrentWithDelayException
 import domain.model.AttestationConfiguration
 import domain.model.AttestationVerifyResult
@@ -67,13 +64,13 @@ class VerifyElasticsearchCommand @Inject constructor(
 
                     if (startAt >= nextInterval) fail("Finish date must be greater than start date")
                     nextInterval
-                }.default(
+                }.defaultLazy {
                     getPreviousTimeInterval(
                         System.currentTimeMillis(),
                         attestationConfiguration.frequencyMillis,
                         attestationConfiguration.delayMillis
                     )
-                )
+                }
 
     override fun run() {
 
@@ -85,7 +82,7 @@ class VerifyElasticsearchCommand @Inject constructor(
                     .doOnSubscribe {
                         printVerbose(
                             "Verifying data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
-                                    "to ${finishIn.toDateFormat(UI_DATE_FORMAT)}"
+                                    "to ${finishIn.toDateFormat(UI_DATE_FORMAT)} \n"
                         )
                     }
                     .doOnNext { result ->

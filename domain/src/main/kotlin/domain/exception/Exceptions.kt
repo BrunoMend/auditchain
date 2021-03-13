@@ -56,7 +56,7 @@ class HttpClientException(code: Int) :
 class NoInternetException : ExpectedException("Fail to get data. Verify your internet connection.", Level.WARNING)
 
 class TimeShorterThanCurrentWithDelayException(momentTime: Long, momentTimeWithDelay: Long) : ExpectedException(
-    "Stamp data from start at ${momentTime.toDateFormat(UI_DATE_FORMAT)} " +
+    "Stamp data ${momentTime.toDateFormat(UI_DATE_FORMAT)} " +
             "must be called after ${(momentTimeWithDelay).toDateFormat(UI_DATE_FORMAT)}",
     Level.WARNING
 )
