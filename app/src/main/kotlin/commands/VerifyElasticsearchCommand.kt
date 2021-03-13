@@ -64,13 +64,7 @@ class VerifyElasticsearchCommand @Inject constructor(
 
                     if (startAt >= nextInterval) fail("Finish date must be greater than start date")
                     nextInterval
-                }.defaultLazy {
-                    getPreviousTimeInterval(
-                        System.currentTimeMillis(),
-                        attestationConfiguration.frequencyMillis,
-                        attestationConfiguration.delayMillis
-                    )
-                }
+                }.required()
 
     override fun run() {
 
