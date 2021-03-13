@@ -2,11 +2,12 @@ package data.database
 
 import data.database.infrastructure.TableAttestation
 import data.database.infrastructure.dao.AttestationDao
-import data.database.infrastructure.toMapString
 import data.database.model.AttestationDM
 import data.database.model.SourceDM
 import data.mappers.toDatabaseModel
+import data.mappers.toDomainModel
 import domain.di.IOScheduler
+import domain.exception.NoAttestationException
 import domain.utility.synchronize
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Scheduler
@@ -27,7 +28,6 @@ class AttestationDatabaseDataSource @Inject constructor(
                     dateStart = attestationDM.dateStart
                     dateEnd = attestationDM.dateEnd
                     dataSource = attestationDM.source
-                    sourceParams = attestationDM.sourceParams?.toMapString()
                     dateTimestamp = attestationDM.dateTimestamp
                     dataSignature = ExposedBlob(attestationDM.dataSignature)
                     otsData = ExposedBlob(attestationDM.otsData)
@@ -45,8 +45,7 @@ class AttestationDatabaseDataSource @Inject constructor(
                 } ?: getAttestationDao(
                     attestationDM.dateStart,
                     attestationDM.dateEnd,
-                    attestationDM.source,
-                    attestationDM.sourceParams
+                    attestationDM.source
                 )).apply {
                     otsData = ExposedBlob(attestationDM.otsData)
                     dateOtsComplete = attestationDM.dateOtsComplete
@@ -67,23 +66,22 @@ class AttestationDatabaseDataSource @Inject constructor(
     fun getAttestation(
         dateStart: Long,
         dateEnd: Long,
-        source: SourceDM,
-        sourceParams: Map<String, String>?
+        source: SourceDM
     ): Single<AttestationDM> =
         Single.fromCallable {
             transaction {
-                getAttestationDao(dateStart, dateEnd, source, sourceParams).toDatabaseModel()
+                getAttestationDao(dateStart, dateEnd, source).toDatabaseModel()
             }
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
 
-    fun getLastAttestation(source: SourceDM): Single<AttestationDM?> =
+    fun getLastAttestation(source: SourceDM): Single<AttestationDM> =
         Single.fromCallable {
             transaction {
                 AttestationDao
                     .find { TableAttestation.dataSource eq source }
                     .maxByOrNull { it.dateEnd }
-                    ?.toDatabaseModel()
+                    ?.toDatabaseModel() ?: throw NoAttestationException(source.toDomainModel(), null)
             }
         }.synchronize(databaseSemaphore)
             .subscribeOn(ioScheduler)
@@ -92,13 +90,11 @@ class AttestationDatabaseDataSource @Inject constructor(
     private fun getAttestationDao(
         dateStart: Long,
         dateEnd: Long,
-        source: SourceDM,
-        sourceParams: Map<String, String>?
+        source: SourceDM
     ): AttestationDao =
         AttestationDao.find {
             (TableAttestation.dateStart eq dateStart) and
                     (TableAttestation.dateEnd eq dateEnd) and
-                    (TableAttestation.dataSource eq source) and
-                    (TableAttestation.sourceParams eq sourceParams?.toMapString())
+                    (TableAttestation.dataSource eq source)
         }.single()
 }

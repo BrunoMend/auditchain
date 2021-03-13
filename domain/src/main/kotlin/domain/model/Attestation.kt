@@ -1,11 +1,8 @@
 package domain.model
 
-import domain.utility.toKeyValueString
-
 data class Attestation(
     val timeInterval: TimeInterval,
     val source: Source,
-    val sourceParams: Map<SourceParam, String>?,
     val dateTimestamp: Long,
     val dataSignature: ByteArray,
     var otsData: ByteArray,
@@ -14,8 +11,7 @@ data class Attestation(
 ) {
     override fun toString(): String =
         "Interval: ${timeInterval}\n" +
-                "Source: ${source}\n" +
-                "${sourceParams.toKeyValueString()}\n"
+                "Source: ${source}\n"
 
     val latencyMillis: Long?
         get() = dateOtsComplete?.let { it - dateTimestamp }

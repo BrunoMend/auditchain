@@ -24,11 +24,7 @@ indexPatterns = indexPattern1*, indexPattern2*, indexPatternN*
 # frequency in minutes 
 frequency = 25
 # delay in seconds
-delay = 10
-# tryAgayTimeout in minutes 
-tryAgainTimeout = 30
-# maxTimeInterval in hours
-maxTimeInterval = 24
+delay = 120
 # keys to sign data
 signingKey = path/to/your/signingKey
 verifyKey = path/to/your/verifyKey

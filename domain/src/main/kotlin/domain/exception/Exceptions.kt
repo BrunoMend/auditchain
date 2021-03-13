@@ -2,9 +2,9 @@ package domain.exception
 
 import domain.model.Attestation
 import domain.model.Source
-import domain.model.SourceParam
 import domain.model.TimeInterval
-import domain.utility.toKeyValueString
+import domain.utility.UI_DATE_FORMAT
+import domain.utility.toDateFormat
 import java.util.logging.Level
 
 abstract class ExpectedException(message: String, val loggerLevel: Level) : Exception(message)
@@ -33,31 +33,19 @@ class BadAttestationException(attestation: Attestation) :
         Level.SEVERE
     )
 
-class AttestationAlreadyExistsException(attestation: Attestation) :
+class InvalidTimeIntervalException(wrongTimeInterval: TimeInterval, expectedTimeInterval: TimeInterval) :
     ExpectedException(
-        "Attestation already exists from:\n$attestation",
-        Level.INFO
+        "The time interval $wrongTimeInterval is wrong. The expected time interval is $expectedTimeInterval",
+        Level.WARNING
     )
 
-class NoAttestationException(source: Source, sourceParams: Map<SourceParam, String>?, timeInterval: TimeInterval?) :
+class NoAttestationException(source: Source, timeInterval: TimeInterval?) :
     ExpectedException(
         "No attestation found from:\n" +
                 (if (timeInterval != null) "Interval: $timeInterval\n" else "") +
-                "Source $source\n" +
-                sourceParams?.toKeyValueString(),
+                "Source $source\n",
         Level.INFO
     )
-
-class NoDataToStampException(timeInterval: TimeInterval, source: Source, sourceParams: Map<SourceParam, String>?) :
-    ExpectedException(
-        "No data to stamp from:\n" +
-                "Interval: $timeInterval\n" +
-                "Source $source\n" +
-                sourceParams?.toKeyValueString(), Level.INFO
-    )
-
-class MaxTimeIntervalExceededException(timeInterval: TimeInterval) :
-    ExpectedException("The maximum time interval has been exceeded by $timeInterval", Level.INFO)
 
 class HttpServerException(code: Int) :
     ExpectedException("Server error on get data. Status-code: $code", Level.WARNING)
@@ -66,3 +54,9 @@ class HttpClientException(code: Int) :
     ExpectedException("Client error on get data. Status-code: $code", Level.WARNING)
 
 class NoInternetException : ExpectedException("Fail to get data. Verify your internet connection.", Level.WARNING)
+
+class TimeShorterThanCurrentWithDelayException(momentTime: Long, momentTimeWithDelay: Long) : ExpectedException(
+    "Stamp data ${momentTime.toDateFormat(UI_DATE_FORMAT)} " +
+            "must be called after ${(momentTimeWithDelay).toDateFormat(UI_DATE_FORMAT)}",
+    Level.WARNING
+)

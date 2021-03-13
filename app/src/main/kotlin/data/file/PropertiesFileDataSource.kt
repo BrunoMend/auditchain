@@ -17,7 +17,7 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                     it.getProperty("elasticHost"),
                     it.getProperty("elasticUser"),
                     it.getProperty("elasticPwds"),
-                    it.getProperty("indexPatterns")
+                    it.getProperty("indexPattern")
                 )
             }
 
@@ -27,8 +27,6 @@ class PropertiesFileDataSource @Inject constructor(private val propertiesStorage
                 AttestationConfigurationFM(
                     it.getProperty("frequency").toLong(),
                     it.getProperty("delay").toLong(),
-                    it.getProperty("tryAgainTimeout").toLong(),
-                    it.getProperty("maxTimeInterval").toLong(),
                     it.getProperty("signingKey"),
                     it.getProperty("verifyKey")
                 )

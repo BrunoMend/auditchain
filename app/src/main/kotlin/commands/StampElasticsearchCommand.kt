@@ -2,46 +2,57 @@ package commands
 
 import domain.model.Attestation
 import domain.model.AttestationConfiguration
-import domain.usecase.GetLastStampedTime
-import domain.usecase.ProcessAllElasticsearchStampExceptions
+import domain.model.Source
+import domain.usecase.GetLastStampedTimeOrDefault
 import domain.usecase.StampElasticsearchDataByInterval
 import domain.usecase.UpdateAllIncompleteAttestationsOtsData
 import domain.utility.UI_DATE_FORMAT
+import domain.utility.getPreviousTimeInterval
 import domain.utility.toDateFormat
-import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Completable
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 
 class StampElasticsearchCommand @Inject constructor(
-    attestationConfiguration: AttestationConfiguration,
-    getLastStampedTime: GetLastStampedTime,
-    client: OkHttpClient,
+    private val attestationConfiguration: AttestationConfiguration,
+    private val getLastStampedTimeOrDefault: GetLastStampedTimeOrDefault,
     private val updateAllIncompleteAttestationsOtsData: UpdateAllIncompleteAttestationsOtsData,
-    private val processAllElasticsearchStampExceptions: ProcessAllElasticsearchStampExceptions,
-    private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval
-) : BaseTimeIntervalCommand(client, attestationConfiguration, getLastStampedTime) {
+    private val stampElasticsearchDataByInterval: StampElasticsearchDataByInterval,
+    client: OkHttpClient
+) : BaseCommand(client) {
 
     override fun run() {
-        super.run()
+        // get the last stamped time or the previous time interval in case of the first stamp
+        val startAt: Long =
+            getLastStampedTimeOrDefault.getSingle(GetLastStampedTimeOrDefault.Request(Source.ELASTICSEARCH))
+                .blockingGet()
+
+        // get the last available time interval to stamp
+        val finishIn: Long =
+            getPreviousTimeInterval(
+                System.currentTimeMillis(),
+                attestationConfiguration.frequencyMillis,
+                attestationConfiguration.delayMillis
+            )
 
         updateAllIncompleteAttestationsOtsData.getCompletable(Unit)
             .doOnSubscribe { printVerbose("Updating OTS data from previous stamps...") }
             .andThen(
-                Observable.concat(
-                    processAllElasticsearchStampExceptions.getObservable(Unit)
-                        .doOnSubscribe { printVerbose("Checking for stamp exceptions to try again...") }
-                        .doOnNext { result ->
-                            if (result.isSuccess) printStampSuccess(result.getOrThrow())
-                            else result.exceptionOrNull()?.printError()
-                        },
+                if (startAt >= finishIn)
+                    Completable.fromAction { println("There is no data to stamp now.") }
+                else
                     stampElasticsearchDataByInterval
                         .getObservable(StampElasticsearchDataByInterval.Request(startAt, finishIn))
-                        .doOnSubscribe { printVerbose("Stamping data from: $uiStartAt to $uiFinishIn") }
-                        .doOnNext { result ->
-                            if (result.isSuccess) printStampSuccess(result.getOrThrow())
-                            else result.exceptionOrNull()?.printError()
+                        .doOnSubscribe {
+                            printVerbose(
+                                "Stamping data from: ${startAt.toDateFormat(UI_DATE_FORMAT)} " +
+                                        "to ${finishIn.toDateFormat(UI_DATE_FORMAT)} \n"
+                            )
                         }
-                ))
+                        .flatMapCompletable { result ->
+                            Completable.fromAction { printStampSuccess(result) }
+                        }.onErrorComplete()
+            )
             .doOnComplete {
                 releaseResources()
                 printProcessCompleted()

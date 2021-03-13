@@ -4,5 +4,5 @@ data class ElasticsearchConfiguration(
     val elasticHost: String,
     val elasticUser: String,
     val elasticPwds: String,
-    val indexPatterns: List<String>
+    val indexPattern: String
 )
