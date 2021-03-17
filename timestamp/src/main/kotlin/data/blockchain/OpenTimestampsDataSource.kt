@@ -20,7 +20,17 @@ class OpenTimestampsDataSource @Inject constructor(
     fun stamp(data: ByteArray): Single<ByteArray> =
         Single.fromCallable {
             val detachedFile: DetachedTimestampFile = DetachedTimestampFile.from(OpSHA256(), data)
-            OpenTimestamps.stamp(detachedFile)
+            OpenTimestamps.stamp(
+                detachedFile,
+                listOf(
+                    "https://alice.btc.calendar.opentimestamps.org",
+                    "https://bob.btc.calendar.opentimestamps.org",
+                    "https://finney.calendar.eternitywall.com",
+                    "https://ots.btc.catallaxy.com"
+                ),
+                0,
+                null
+            )
             detachedFile.serialize()
         }.subscribeOn(ioScheduler)
 
